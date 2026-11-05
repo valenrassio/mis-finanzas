@@ -1,6 +1,6 @@
 /* Service worker: guarda todos los archivos de la app para que abra sin internet.
    Cada vez que cambies un archivo, subí el número de VERSION así el celular baja la versión nueva. */
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = `misfinanzas-${VERSION}`;
 const FILES = [
   './',

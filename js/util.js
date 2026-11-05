@@ -18,7 +18,7 @@
 
   const nf = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
   MF.nf = nf;
-  MF.money = v => '$ ' + nf.format(Math.abs(Math.round(v)));
+  MF.money = v => '$ ' + nf.format(Math.abs(Math.round(v))); // espacio que no se corta: el $ nunca queda solo al final de una línea
   MF.signed = v => (Math.round(v) < 0 ? '−' : '') + MF.money(v);
   MF.plusMinus = v => (Math.round(v) < 0 ? '−' : '+') + MF.money(v);
 

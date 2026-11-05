@@ -56,7 +56,7 @@ Abrir en la compu: doble clic en `index.html` (así anda todo menos el modo sin 
 
 Cuatro secciones. En la compu van en el encabezado (el punto azul marca dónde estás); en el celular, en el **menú de hamburguesa**.
 
-- **Inicio**: saludo y fecha, lo que te queda este mes, ingresos, gastos y plata en metas. Abajo: tus metas, los topes del mes (del más cerca de pasarse al más tranquilo) y los últimos movimientos.
+- **Inicio**: mira para adelante, no repite Movimientos. Número grande: **cuánto podés gastar por día** hasta fin de mes (lo que te queda ÷ días que faltan). Gastado hoy, en los últimos 7 días y promedio diario. Barras de los últimos 7 días (el punto marca hoy). **Cómo venís**: ritmo contra tus 3 meses anteriores a la misma altura, la categoría que más subió, cómo cerrarías el mes y avisos de topes. Resumen de metas.
 - **Movimientos**: balance del mes elegido (flechas o teclas ← / →), gráfico del balance acumulado, "En qué se va" con topes, y la lista con filtros y búsqueda. Tocar uno lo edita; la ✕ lo borra (con "Deshacer").
 - **Metas**: nombre, cuánto querés juntar, cuánto tenés y para cuándo. Te dice el % y cuánto juntar por mes para llegar. Botones **Sumar** y **Sacar** en cada meta. Cuando se cumple, el punto aparece al final de la barra.
 - **Categorías**: crear, renombrar, ponerle tope o borrar categorías de gastos e ingresos. Al renombrar se actualizan todos los movimientos; al borrar, sus movimientos pasan a "Otros" (que no se puede borrar).

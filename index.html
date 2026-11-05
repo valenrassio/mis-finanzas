@@ -89,20 +89,20 @@
   <section class="view wrap" id="view-inicio" aria-label="Inicio" hidden>
     <div class="hero">
       <p class="eyebrow"><span class="reveal"><span class="reveal-i" id="hGreet"></span></span></p>
-      <h1 class="balance"><span class="reveal"><span class="reveal-i" id="hBalance">$ 0</span></span></h1>
-      <p class="sub"><span class="reveal"><span class="reveal-i">Es lo que te queda este mes</span></span></p>
+      <h1 class="balance"><span class="reveal"><span class="reveal-i" id="hPerDay">$ 0</span></span></h1>
+      <p class="sub per-day"><span class="reveal"><span class="reveal-i" id="hSub"></span></span></p>
       <dl class="stats">
         <div>
-          <dt><span class="reveal"><span class="reveal-i">Ingresos</span></span></dt>
-          <dd><span class="reveal"><span class="reveal-i" id="hIn">$ 0</span></span></dd>
+          <dt><span class="reveal"><span class="reveal-i">Hoy</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="hToday">$ 0</span></span></dd>
         </div>
         <div>
-          <dt><span class="reveal"><span class="reveal-i">Gastos</span></span></dt>
-          <dd><span class="reveal"><span class="reveal-i" id="hOut">$ 0</span></span></dd>
+          <dt><span class="reveal"><span class="reveal-i">Últimos 7 días</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="hWeekTotal">$ 0</span></span></dd>
         </div>
         <div>
-          <dt><span class="reveal"><span class="reveal-i">En metas</span></span></dt>
-          <dd><span class="reveal"><span class="reveal-i" id="hGoalsSaved">$ 0</span></span></dd>
+          <dt><span class="reveal"><span class="reveal-i">Promedio por día</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="hAvg">$ 0</span></span></dd>
         </div>
       </dl>
       <p class="notice" data-sample-notice hidden>Estás viendo datos de ejemplo. <button type="button" data-act="wipe-sample">Borrarlos y empezar</button></p>
@@ -111,17 +111,17 @@
     <div class="grid home-grid">
       <div>
         <section>
-          <header class="sec-h"><h2>Metas</h2><a class="link" href="#metas">Ver todas</a></header>
-          <ol class="goal-list" id="hGoals"></ol>
+          <header class="sec-h"><h2>Últimos 7 días</h2><span class="hint">Lo que gastaste cada día</span></header>
+          <div class="week" id="hWeek"></div>
         </section>
         <section class="sec-next">
-          <header class="sec-h"><h2>Topes del mes</h2><a class="link" href="#categorias">Categorías</a></header>
-          <ol class="goal-list" id="hCaps"></ol>
+          <header class="sec-h"><h2>Cómo venís</h2><span class="hint">Comparado con tus meses anteriores</span></header>
+          <ol class="tips" id="hTips"></ol>
         </section>
       </div>
       <section>
-        <header class="sec-h"><h2>Últimos movimientos</h2><a class="link" href="#movimientos">Ver todos</a></header>
-        <div id="hMoves"></div>
+        <header class="sec-h"><h2>Metas</h2><a class="link" href="#metas">Ver todas</a></header>
+        <ol class="goal-list" id="hGoals"></ol>
       </section>
     </div>
   </section>
