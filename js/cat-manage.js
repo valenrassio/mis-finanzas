@@ -1,8 +1,8 @@
-/* Categorías: crear, renombrar, ponerle tope y borrar.
+/* Categorías: crear, renombrar, elegir color, ponerle tope y borrar.
    Al renombrar se actualizan todos los movimientos; al borrar, sus movimientos pasan a "Otros". */
 (function (MF) {
   'use strict';
-  const { $, $$, now, esc, money, nf, parseAmount, store } = MF;
+  const { $, $$, now, esc, money, nf, parseAmount, COLORS, COLOR_NAMES, store } = MF;
   const { animate, reveal } = MF.motion;
 
   const MAX = 24;
@@ -27,7 +27,7 @@
     return `<li data-cm="${esc(name)}">
       <button type="button" class="cm" data-cm-btn>
         <span class="cm-top">
-          <span class="cm-name reveal"><span class="reveal-i">${esc(name)}</span></span>
+          <span class="cm-name reveal"><span class="reveal-i">${MF.swatch(type, name)}${esc(name)}</span></span>
           <span class="cm-amt reveal"><span class="reveal-i">${money(u.month[name] || 0)} <span>este mes</span></span></span>
         </span>
         <span class="cm-sub">${sub.join(' · ')}</span>
@@ -54,6 +54,7 @@
 
     const isOther = name === store.OTHER;
     const cap = type === 'out' ? store.db.budgets[name] : 0;
+    let color = store.color(type, name);
     const f = document.createElement('form');
     f.className = 'cm-edit';
     f.noValidate = true;
@@ -62,6 +63,11 @@
         <input class="line-input" name="name" maxlength="${MAX}" value="${esc(name)}" ${isOther ? 'disabled' : ''}></label>
       ${type === 'out' ? `<label class="field"><span class="lbl">Tope mensual</span>
         <input class="line-input" name="cap" inputmode="decimal" placeholder="Sin tope" value="${cap ? nf.format(cap) : ''}"></label>` : '<span></span>'}
+      ${isOther ? '' : `<div class="cm-colors" role="radiogroup" aria-label="Color">
+        <span class="lbl">Color</span>
+        <div class="swatches">${COLORS.map(c => `<button type="button" class="swb" role="radio" data-color="${c}"
+          style="--c:var(--c-${c})" aria-checked="${c === color}" aria-label="${COLOR_NAMES[c]}" title="${COLOR_NAMES[c]}"></button>`).join('')}</div>
+      </div>`}
       <span class="err" aria-live="polite"></span>
       <div class="cm-actions">
         ${isOther ? '<span class="hint">"Otros" no se puede borrar ni renombrar.</span>' : '<button type="button" class="ghost pad0" data-cm-del>Borrar</button>'}
@@ -84,6 +90,7 @@
       if (store.hasCat(type, next, name)) { err.textContent = `Ya tenés una categoría "${next}".`; nameIn.focus(); return; }
       const before = store.snapshot();
       store.renameCat(type, name, next);
+      store.setColor(type, next, color);
       if (type === 'out') store.setBudget(next, parseAmount(capIn.value) || 0);
       store.save();
       MF.render('data');
@@ -94,6 +101,15 @@
     // Borrar pide un segundo toque, y avisa a dónde van los movimientos.
     let armed = false, timer;
     f.addEventListener('click', e => {
+      const sw = e.target.closest('[data-color]');
+      if (sw) {
+        color = sw.dataset.color;
+        $$('[data-color]', f).forEach(b => b.setAttribute('aria-checked', String(b === sw)));
+        // vista previa en la fila mientras se edita
+        const prev = $('.cm .sw', li);
+        if (prev) prev.style.setProperty('--c', `var(--c-${color})`);
+        return;
+      }
       const del = e.target.closest('[data-cm-del]');
       if (!del) return;
       const n = usage(type).all[name] || 0;

@@ -30,9 +30,9 @@
     const scale = Math.max(...rows.map(r => Math.max(r.s, r.b)));
 
     list.innerHTML = rows.map(r => `
-      <li data-cat="${esc(r.n)}"><button class="cat" type="button" data-cat-btn="${esc(r.n)}">
+      <li data-cat="${esc(r.n)}" style="--c:var(--c-${store.color('out', r.n)})"><button class="cat" type="button" data-cat-btn="${esc(r.n)}">
         <span class="cat-top">
-          <span class="cat-name reveal"><span class="reveal-i">${esc(r.n)}</span></span>
+          <span class="cat-name reveal"><span class="reveal-i">${MF.swatch('out', r.n)}${esc(r.n)}</span></span>
           <span class="cat-amt reveal"><span class="reveal-i">${money(r.s)}${r.b ? ` <span>de ${money(r.b)}</span>` : ''}</span></span>
         </span>
         <span class="track"><span class="fill"></span>${r.b ? `<span class="tick" style="left:${(r.b / scale) * 100}%"></span>` : ''}</span>

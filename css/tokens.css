@@ -1,4 +1,7 @@
-/* Colores y tipografía. Un solo acento: el azul del punto. */
+/* Colores y tipografía.
+   - Azul: el punto (logo, botón para agregar, último punto del gráfico, sección activa).
+   - Lima: marca lo importante (resaltado de números clave, ingresos, "Hoy", metas cumplidas). Siempre con texto oscuro encima.
+   - Categorías: 8 colores validados para daltonismo (siempre al lado del nombre, nunca solos) y gris para "Otros". */
 :root {
   --bg: #F4F3EF;
   --ink: #121211;
@@ -8,8 +11,21 @@
   --line-2: #E9E7E1;
   --accent: #2347FF;
   --on-accent: #FFFFFF;
+  --pop: #CDF54A;
+  --pop-soft: #E6F9A4;
+  --on-pop: #121211;
   --scrim: rgba(18, 18, 17, .16);
   --font: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --c-orange: #eb6834;
+  --c-aqua: #1baf7a;
+  --c-yellow: #eda100;
+  --c-magenta: #e87ba4;
+  --c-green: #008300;
+  --c-violet: #6250d6;
+  --c-red: #e34948;
+  --c-blue: #2a78d6;
+  --c-gray: #A3A19A;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -22,7 +38,20 @@
     --line-2: #1D1C1A;
     --accent: #5E7BFF;
     --on-accent: #0F0F0E;
+    --pop: #C6F03C;
+    --pop-soft: #3A4614;
+    --on-pop: #0F0F0E;
     --scrim: rgba(0, 0, 0, .5);
+
+    --c-orange: #d95926;
+    --c-aqua: #199e70;
+    --c-yellow: #c98500;
+    --c-magenta: #d55181;
+    --c-green: #008300;
+    --c-violet: #9085e9;
+    --c-red: #e66767;
+    --c-blue: #3987e5;
+    --c-gray: #6F6E68;
     color-scheme: dark;
   }
 }
@@ -35,6 +64,19 @@
   --line-2: #1D1C1A;
   --accent: #5E7BFF;
   --on-accent: #0F0F0E;
+  --pop: #C6F03C;
+  --pop-soft: #3A4614;
+  --on-pop: #0F0F0E;
   --scrim: rgba(0, 0, 0, .5);
+
+  --c-orange: #d95926;
+  --c-aqua: #199e70;
+  --c-yellow: #c98500;
+  --c-magenta: #d55181;
+  --c-green: #008300;
+  --c-violet: #9085e9;
+  --c-red: #e66767;
+  --c-blue: #3987e5;
+  --c-gray: #6F6E68;
   color-scheme: dark;
 }

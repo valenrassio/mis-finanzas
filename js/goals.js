@@ -1,5 +1,6 @@
 /* Metas: cuánto querés juntar, cuánto llevás y cuánto te falta por mes para llegar a la fecha.
-   Cuando una meta se cumple, el punto aparece al final de su barra. */
+   Una meta se cumple sola al llegar al objetivo, o la podés marcar como cumplida a mano.
+   Las cumplidas quedan guardadas, en gris y con la etiqueta lima "Cumplida". */
 (function (MF) {
   'use strict';
   const { $, $$, MONTHS, now, esc, money, lerp, parseAmount, store } = MF;
@@ -8,32 +9,40 @@
   const list = $('#goalList');
   const prevFill = new Map();
 
+  const monthOf = isoDate => { const [y, m] = isoDate.split('-').map(Number); return `${MONTHS[m - 1]} ${y}`; };
+
   /* Progreso, lo que falta y el ritmo mensual necesario. */
   function stats(g) {
-    const done = g.saved >= g.target;
+    const done = !!g.done;
     const pct = g.target > 0 ? Math.min(1, g.saved / g.target) : 0;
     const left = Math.max(0, g.target - g.saved);
     let perMonth = null, late = false, when = '';
     if (g.deadline) {
+      when = monthOf(g.deadline);
       const [y, m] = g.deadline.split('-').map(Number);
-      when = `${MONTHS[m - 1]} ${y}`;
       const months = (y * 12 + m - 1) - (now.getFullYear() * 12 + now.getMonth()) + 1; // el mes actual cuenta
       if (months >= 1) perMonth = left / months; else late = true;
     }
     return { done, pct, left, perMonth, late, when };
   }
 
-  function noteFor(s) {
-    if (s.done) return '<span class="cat-note over">Cumplida</span>';
+  function noteFor(g, s) {
+    if (s.done) {
+      const parts = [];
+      if (g.doneAt) parts.push(`en ${monthOf(g.doneAt)}`);
+      if (g.saved < g.target) parts.push(`juntaste ${money(g.saved)} de ${money(g.target)}`);
+      return `<span class="cat-note"><span class="badge">Cumplida</span>${parts.length ? ` ${parts.join(' · ')}` : ''}</span>`;
+    }
     const parts = [`${Math.round(s.pct * 100)}%`, `faltan ${money(s.left)}`];
     if (s.perMonth !== null) parts.push(`${money(Math.ceil(s.perMonth / 100) * 100)} por mes hasta ${s.when}`);
     else if (s.late) parts.push(`la fecha era ${s.when}`);
     return `<span class="cat-note">${parts.join(' · ')}</span>`;
   }
 
-  /* Orden: las que están en curso primero, las cumplidas al final. */
-  const sorted = goals => [...goals].sort((a, b) =>
-    (a.saved >= a.target) - (b.saved >= b.target) || (a.created || 0) - (b.created || 0));
+  /* Orden: las que están en curso primero (por fecha de creación), las cumplidas al final (la última cumplida primero). */
+  const pending = goals => goals.filter(g => !g.done).sort((a, b) => (a.created || 0) - (b.created || 0));
+  const finished = goals => goals.filter(g => g.done).sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || '') || (b.created || 0) - (a.created || 0));
+  const sorted = goals => [...pending(goals), ...finished(goals)];
 
   /* Fila de una meta. compact = versión para el Inicio (sin botones, lleva a Metas). */
   function rowHtml(g, compact) {
@@ -41,23 +50,26 @@
     const inner = `
       <span class="cat-top">
         <span class="cat-name reveal"><span class="reveal-i">${esc(g.name)}</span></span>
-        <span class="cat-amt reveal"><span class="reveal-i">${money(g.saved)} <span>de ${money(g.target)}</span></span></span>
+        <span class="cat-amt reveal"><span class="reveal-i">${s.done ? money(g.target) : `${money(g.saved)} <span>de ${money(g.target)}</span>`}</span></span>
       </span>
-      <span class="track"><span class="fill" data-to="${s.pct}" data-key="${g.id}"></span>${s.done ? '<span class="dot end-dot"></span>' : ''}</span>
-      ${noteFor(s)}`;
-    if (compact) return `<li class="goal"><a class="goal-btn" href="#metas">${inner}</a></li>`;
-    return `<li class="goal" data-goal="${g.id}">
+      ${s.done ? '' : `<span class="track"><span class="fill" data-to="${s.pct}" data-key="${g.id}"></span></span>`}
+      ${noteFor(g, s)}`;
+    const cls = `goal${s.done ? ' is-done' : ''}`;
+    if (compact) return `<li class="${cls}"><a class="goal-btn" href="#metas">${inner}</a></li>`;
+    const acts = s.done
+      ? `<button type="button" class="mini" data-goal-reopen="${g.id}">Reabrir</button>`
+      : `<button type="button" class="mini" data-goal-add="${g.id}">Sumar</button>
+         <button type="button" class="mini" data-goal-sub="${g.id}"${g.saved > 0 ? '' : ' disabled'}>Sacar</button>
+         <button type="button" class="mini mini-pop" data-goal-done="${g.id}">Cumplida</button>`;
+    return `<li class="${cls}" data-goal="${g.id}">
       <div class="goal-main">
         <button type="button" class="goal-btn" data-goal-edit="${g.id}" aria-label="Editar ${esc(g.name)}">${inner}</button>
-        <div class="goal-acts">
-          <button type="button" class="mini" data-goal-add="${g.id}">Sumar</button>
-          <button type="button" class="mini" data-goal-sub="${g.id}"${g.saved > 0 ? '' : ' disabled'}>Sacar</button>
-        </div>
+        <div class="goal-acts">${acts}</div>
       </div>
     </li>`;
   }
 
-  /* Hace crecer las barras desde su ancho anterior (o desde cero) y el punto de las cumplidas. */
+  /* Hace crecer las barras desde su ancho anterior (o desde cero). */
   function animateFills(box, prev, mode) {
     $$('.fill', box).forEach((fill, i) => {
       const to = +fill.dataset.to;
@@ -68,23 +80,19 @@
         delay: mode === 'data' ? 0 : 0.3 + i * 0.05, w: 13,
         update: p => { fill.style.transform = `scaleX(${Math.max(0, lerp(from, to, p))})`; },
       });
-      const end = fill.parentNode.querySelector('.end-dot');
-      if (end && (mode !== 'data' || (prev.get(key) ?? 0) < 1)) grow(end, { delay: mode === 'data' ? 0.35 : 0.75 + i * 0.05 });
     });
     prev.clear();
     $$('.fill', box).forEach(f => prev.set(f.dataset.key, +f.dataset.to));
+    if (mode !== 'data') $$('.badge', box).forEach((b, i) => grow(b, { delay: 0.5 + i * 0.05, from: 0.6 }));
   }
 
   function render(mode) {
     const goals = store.db.goals;
-    const saved = goals.reduce((a, g) => a + g.saved, 0);
-    const target = goals.reduce((a, g) => a + g.target, 0);
-    const left = goals.reduce((a, g) => a + Math.max(0, g.target - g.saved), 0);
-    const done = goals.filter(g => g.saved >= g.target).length;
-    countTo($('#gTotal'), saved, money);
-    countTo($('#gTarget'), target, money);
-    countTo($('#gLeft'), left, money);
-    $('#gDone').textContent = goals.length ? `${done} de ${goals.length}` : '—';
+    const open = pending(goals), done = finished(goals);
+    countTo($('#gTotal'), goals.reduce((a, g) => a + g.saved, 0), money);
+    countTo($('#gTarget'), open.reduce((a, g) => a + g.target, 0), money);
+    countTo($('#gLeft'), open.reduce((a, g) => a + Math.max(0, g.target - g.saved), 0), money);
+    $('#gDone').textContent = goals.length ? `${done.length} de ${goals.length}` : '—';
 
     if (!goals.length) {
       list.innerHTML = `<li class="empty">
@@ -95,7 +103,8 @@
       prevFill.clear();
       return;
     }
-    list.innerHTML = sorted(goals).map(g => rowHtml(g, false)).join('');
+    list.innerHTML = open.map(g => rowHtml(g, false)).join('')
+      + (done.length ? `<li class="goal-sep"><span>Cumplidas · ${done.length}</span></li>` + done.map(g => rowHtml(g, false)).join('') : '');
     animateFills(list, prevFill, mode);
     if (mode !== 'data') reveal($$('.reveal-i', list), { delay: 0.2, stagger: 0.025 });
   }
@@ -130,24 +139,40 @@
       const amount = parseAmount(input.value);
       if (!(amount > 0)) { input.focus(); input.select(); return; }
       const before = store.snapshot();
-      const wasDone = g.saved >= g.target;
+      const wasDone = g.done;
       const real = store.contribute(id, sign * amount);
       store.save();
       MF.render('data');
       const undo = () => { store.db = before; store.save(); MF.render('data'); };
-      if (!wasDone && g.saved >= g.target) {
-        grow($('#brandDot'), { from: 0.4 });
-        MF.toast(`Cumpliste "${g.name}"`, undo);
-      } else MF.toast(real > 0 ? `Sumaste ${money(real)} a ${g.name}` : `Sacaste ${money(-real)} de ${g.name}`, undo);
+      if (!wasDone && g.done) { grow($('#brandDot'), { from: 0.4 }); MF.toast(`Cumpliste "${g.name}"`, undo); }
+      else MF.toast(real > 0 ? `Sumaste ${money(real)} a ${g.name}` : `Sacaste ${money(-real)} de ${g.name}`, undo);
     });
   }
 
+  /* Marcar cumplida o reabrir, con deshacer. */
+  function setDone(id, done) {
+    const g = store.findGoal(id);
+    if (!g) return;
+    const before = store.snapshot();
+    store.setGoalDone(id, done);
+    store.save();
+    MF.render('data');
+    if (done) grow($('#brandDot'), { from: 0.4 });
+    MF.toast(done ? `"${g.name}" quedó cumplida` : `"${g.name}" volvió a estar en curso`,
+      () => { store.db = before; store.save(); MF.render('data'); });
+  }
+
   list.addEventListener('click', e => {
-    const add = e.target.closest('[data-goal-add]');
+    const t = e.target;
+    const add = t.closest('[data-goal-add]');
     if (add) { editAmount(add.dataset.goalAdd, 1); return; }
-    const sub = e.target.closest('[data-goal-sub]');
+    const sub = t.closest('[data-goal-sub]');
     if (sub) { editAmount(sub.dataset.goalSub, -1); return; }
-    const edit = e.target.closest('[data-goal-edit]');
+    const done = t.closest('[data-goal-done]');
+    if (done) { setDone(done.dataset.goalDone, true); return; }
+    const reopen = t.closest('[data-goal-reopen]');
+    if (reopen) { setDone(reopen.dataset.goalReopen, false); return; }
+    const edit = t.closest('[data-goal-edit]');
     if (edit) { const g = store.findGoal(edit.dataset.goalEdit); if (g) MF.sheet.openGoal(g); }
   });
 
@@ -159,5 +184,5 @@
     MF.toast('Meta borrada', () => { store.db = before; store.save(); MF.render('data'); });
   }
 
-  MF.goals = { render, remove, rowHtml, sorted, animateFills, stats };
+  MF.goals = { render, remove, rowHtml, sorted, pending, finished, animateFills, stats };
 })(window.MF = window.MF || {});

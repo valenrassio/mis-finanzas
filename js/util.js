@@ -11,6 +11,16 @@
     out: ['Supermercado', 'Comida', 'Transporte', 'Vivienda', 'Servicios', 'Salud', 'Ocio', 'Ropa', 'Educación', 'Otros'],
     in: ['Sueldo', 'Freelance', 'Ventas', 'Regalos', 'Otros'],
   };
+  /* Colores de categoría (definidos en tokens.css como --c-<nombre>). Arranca por naranja para no
+     confundirse con el azul del punto; "Otros" siempre es gris. */
+  MF.COLORS = ['orange', 'aqua', 'yellow', 'magenta', 'green', 'violet', 'red', 'blue'];
+  MF.COLOR_NAMES = {
+    orange: 'Naranja', aqua: 'Agua', yellow: 'Amarillo', magenta: 'Rosa', green: 'Verde',
+    violet: 'Violeta', red: 'Rojo', blue: 'Azul', gray: 'Gris',
+  };
+  /* Cuadradito de color de una categoría (siempre va al lado del nombre). */
+  MF.swatch = (type, name) => `<span class="sw" style="--c:var(--c-${MF.store.color(type, name)})" aria-hidden="true"></span>`;
+
   MF.MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   MF.WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 

@@ -26,7 +26,7 @@
 
   function renderChips() {
     $('#fCats').innerHTML = store.cats(form.type)
-      .map(c => `<button type="button" data-chip="${esc(c)}" aria-pressed="${c === form.cat}">${esc(c)}</button>`).join('');
+      .map(c => `<button type="button" data-chip="${esc(c)}" aria-pressed="${c === form.cat}">${MF.swatch(form.type, c)}${esc(c)}</button>`).join('');
   }
 
   function setType(type, animated = true) {

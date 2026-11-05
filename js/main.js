@@ -37,7 +37,7 @@
   function renderShared() {
     $$('[data-sample-notice]').forEach(n => { n.hidden = !store.db.sample; });
     $$('.opt-sample').forEach(b => { b.hidden = store.db.tx.length > 0; });
-    const active = store.db.goals.filter(g => g.saved < g.target).length;
+    const active = store.db.goals.filter(g => !g.done).length;
     MF.nav.setMeta('inicio', `${now.getDate()} de ${MONTHS[now.getMonth()]}`);
     MF.nav.setMeta('movimientos', `${MONTHS[store.view.m]}${store.view.y !== now.getFullYear() ? ` ${store.view.y}` : ''}`);
     MF.nav.setMeta('metas', store.db.goals.length ? `${active} en curso` : '');

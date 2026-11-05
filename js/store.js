@@ -2,11 +2,11 @@
    Hoy guarda en localStorage. Para pasar a un back, solo cambian load() y save(). */
 (function (MF) {
   'use strict';
-  const { STORAGE_KEY, DEFAULT_CATS, monthPrefix, now, pad, uid, lerp, iso } = MF;
+  const { STORAGE_KEY, DEFAULT_CATS, COLORS, monthPrefix, now, pad, uid, lerp, iso } = MF;
 
   const OTHER = 'Otros';
   const defaultCats = () => ({ out: [...DEFAULT_CATS.out], in: [...DEFAULT_CATS.in] });
-  const empty = () => ({ tx: [], budgets: {}, cats: defaultCats(), goals: [], sample: false });
+  const empty = () => normalize({ tx: [], budgets: {}, cats: defaultCats(), goals: [], sample: false });
   const same = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
   /* Completa lo que falte en datos viejos: categorías propias y metas.
@@ -18,15 +18,34 @@
       cats: d.cats && Array.isArray(d.cats.out) && Array.isArray(d.cats.in)
         ? { out: d.cats.out.map(String), in: d.cats.in.map(String) } : defaultCats(),
       goals: Array.isArray(d.goals) ? d.goals : [],
+      colors: { out: { ...(d.colors && d.colors.out) }, in: { ...(d.colors && d.colors.in) } },
       sample: !!d.sample,
     };
+    // Metas viejas sin la marca: cuentan como cumplidas si ya juntaron el objetivo.
+    for (const g of db.goals) if (typeof g.done !== 'boolean') g.done = g.saved >= g.target;
     for (const type of ['out', 'in']) {
       const list = db.cats[type].filter((c, i, a) => c && c !== OTHER && a.findIndex(x => same(x, c)) === i);
       for (const t of db.tx) if (t.type === type && t.category !== OTHER && !list.includes(t.category)) list.push(t.category);
       list.push(OTHER);
       db.cats[type] = list;
+      // Colores: cada categoría tiene uno; las nuevas toman el menos usado. "Otros" siempre gris.
+      const prev = db.colors[type];
+      db.colors[type] = {};
+      for (const c of list) {
+        if (c === OTHER) db.colors[type][c] = 'gray';
+        else db.colors[type][c] = COLORS.includes(prev[c]) ? prev[c] : leastUsed(db.colors[type], type);
+      }
     }
     return db;
+  }
+
+  /* Orden en que se reparten los colores. Los ingresos arrancan por verde (plata que entra). */
+  const ORDER = { out: COLORS, in: ['green', 'aqua', 'blue', 'violet', 'yellow', 'magenta', 'orange', 'red'] };
+  function leastUsed(map, type = 'out') {
+    const order = ORDER[type];
+    const count = Object.fromEntries(order.map(c => [c, 0]));
+    for (const v of Object.values(map)) if (v in count) count[v]++;
+    return order.reduce((best, c) => (count[c] < count[best] ? c : best), order[0]);
   }
 
   // null = nunca se guardó nada en este navegador (primera visita)
@@ -78,7 +97,10 @@
     addCat(type, name) {
       const list = store.db.cats[type];
       list.splice(Math.max(0, list.indexOf(OTHER)), 0, name);
+      store.db.colors[type][name] = leastUsed(store.db.colors[type], type);
     },
+    color: (type, name) => (store.db.colors[type] && store.db.colors[type][name]) || 'gray',
+    setColor(type, name, color) { if (name !== OTHER && COLORS.includes(color)) store.db.colors[type][name] = color; },
 
     /* Renombra en la lista, en todos los movimientos de ese tipo y en el tope. */
     renameCat(type, from, to) {
@@ -86,6 +108,8 @@
       const list = store.db.cats[type];
       list[list.indexOf(from)] = to;
       for (const t of store.db.tx) if (t.type === type && t.category === from) t.category = to;
+      store.db.colors[type][to] = store.db.colors[type][from];
+      delete store.db.colors[type][from];
       if (type === 'out' && from in store.db.budgets) { store.db.budgets[to] = store.db.budgets[from]; delete store.db.budgets[from]; }
     },
 
@@ -93,6 +117,7 @@
     removeCat(type, name) {
       if (name === OTHER) return 0;
       store.db.cats[type] = store.db.cats[type].filter(c => c !== name);
+      delete store.db.colors[type][name];
       let moved = 0;
       for (const t of store.db.tx) if (t.type === type && t.category === name) { t.category = OTHER; moved++; }
       if (type === 'out') delete store.db.budgets[name];
@@ -102,7 +127,8 @@
     /* ---- metas ---- */
     findGoal: id => store.db.goals.find(g => g.id === id),
     addGoal({ name, target, saved = 0, deadline = '' }) {
-      const g = { id: uid(), created: Date.now(), name, target, saved: Math.max(0, saved), deadline, history: [] };
+      const g = { id: uid(), created: Date.now(), name, target, saved: Math.max(0, saved), deadline, history: [], done: false, doneAt: '' };
+      if (g.saved >= g.target) { g.done = true; g.doneAt = iso(new Date()); }
       if (g.saved > 0) g.history.push({ date: iso(new Date()), amount: g.saved });
       store.db.goals.push(g);
       return g;
@@ -112,6 +138,7 @@
       if (!g) return;
       if ('saved' in data && data.saved !== g.saved) g.history.push({ date: iso(new Date()), amount: data.saved - g.saved });
       Object.assign(g, data);
+      if (!g.done && g.saved >= g.target) { g.done = true; g.doneAt = iso(new Date()); }
     },
     removeGoal(id) { store.db.goals = store.db.goals.filter(g => g.id !== id); },
     /* Suma (o resta, si amount < 0) plata a una meta. Nunca baja de cero. Devuelve lo que realmente se movió. */
@@ -121,7 +148,15 @@
       const real = Math.max(-g.saved, amount);
       g.saved = Math.round((g.saved + real) * 100) / 100;
       if (real) g.history.push({ date: iso(new Date()), amount: real });
+      if (!g.done && g.saved >= g.target) { g.done = true; g.doneAt = iso(new Date()); } // llegó al objetivo
       return real;
+    },
+    /* Marcar una meta como cumplida (aunque no se haya juntado todo) o volver a abrirla. */
+    setGoalDone(id, done) {
+      const g = store.findGoal(id);
+      if (!g) return;
+      g.done = done;
+      g.doneAt = done ? iso(new Date()) : '';
     },
 
     /* Valida y normaliza una copia importada. Devuelve null si no sirve. */
@@ -135,6 +170,8 @@
           id: g.id || uid(), created: g.created || Date.now(), name: String(g.name).slice(0, 40), target: +g.target,
           saved: Math.max(0, +g.saved || 0), deadline: /^\d{4}-\d{2}$/.test(g.deadline) ? g.deadline : '',
           history: Array.isArray(g.history) ? g.history : [],
+          ...(typeof g.done === 'boolean' ? { done: g.done } : {}),
+          doneAt: /^\d{4}-\d{2}-\d{2}$/.test(g.doneAt) ? g.doneAt : '',
         }));
       return normalize({
         tx: d.tx.map(t => ({
@@ -143,6 +180,7 @@
         })),
         budgets: d.budgets,
         cats: d.cats,
+        colors: d.colors,
         goals,
         sample: !!d.sample,
       });

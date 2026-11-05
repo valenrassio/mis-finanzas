@@ -27,6 +27,7 @@
     const title = esc(t.note || t.category);
     return `<div class="mask row"><div class="mv">
       <button type="button" class="mv-main" data-edit="${t.id}">
+        ${MF.swatch(t.type, t.category)}
         <span class="mv-txt"><span class="mv-t">${title}</span>${t.note ? `<span class="mv-s">${esc(t.category)}</span>` : ''}</span>
         <span class="mv-amt ${t.type}">${t.type === 'in' ? '+' : '−'}${money(t.amount)}</span>
       </button>

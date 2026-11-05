@@ -136,7 +136,7 @@
       }
       if (best) {
         const vs = best.avg > 0 ? `${b(`${pct(best.v, best.avg)}% más`)} que tu promedio (${money(best.avg)})` : 'y en otros meses a esta altura no gastabas nada ahí';
-        list.push(['Subió', `${b(esc(best.cat))} va ${b(money(best.v))}, ${vs}.`]);
+        list.push(['Subió', `${MF.swatch('out', best.cat)}${b(esc(best.cat))} va ${b(money(best.v))}, ${vs}.`]);
       } else if (mine.total > 0) list.push(['Subió', 'Ninguna categoría viene más alta que de costumbre.']);
     }
 
@@ -174,15 +174,17 @@
   }
 
   function renderGoals(mode) {
-    const top = MF.goals.sorted(store.db.goals).slice(0, 3);
-    if (!top.length) {
+    const open = MF.goals.pending(store.db.goals), done = MF.goals.finished(store.db.goals);
+    if (!open.length && !done.length) {
       goalsBox.innerHTML = `<li class="empty">
         <p class="muted">Todavía no tenés metas.</p>
         <div class="actions"><button type="button" class="ghost pad0" data-act="new-goal">Crear una meta</button></div></li>`;
       prevGoals.clear();
       return;
     }
-    goalsBox.innerHTML = top.map(g => MF.goals.rowHtml(g, true)).join('');
+    goalsBox.innerHTML = (open.length ? open.map(g => MF.goals.rowHtml(g, true)).join('')
+      : '<li class="empty"><p class="muted">No tenés metas en curso. <button type="button" class="link" data-act="new-goal">Crear una</button></p></li>')
+      + (done.length ? `<li class="goal-sep"><span>Cumplidas · ${done.length}</span></li>` + done.map(g => MF.goals.rowHtml(g, true)).join('') : '');
     MF.goals.animateFills(goalsBox, prevGoals, mode);
   }
 

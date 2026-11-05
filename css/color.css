@@ -1,0 +1,78 @@
+/* Color: el lima marca lo importante y cada categoría tiene su color.
+   Tokens en tokens.css (--pop, --pop-soft, --on-pop, --c-*). */
+
+/* Resaltador: en claro, lima pleno; en oscuro, lima apagado para que el texto claro se siga leyendo. */
+:root { --mark: var(--pop); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --mark: var(--pop-soft); } }
+:root[data-theme="dark"] { --mark: var(--pop-soft); }
+
+/* ---- lima: marcar cosas ---- */
+
+/* números clave en "Cómo venís" y debajo del número grande del Inicio, como pasados con resaltador */
+.tips b, .sub b {
+  background: linear-gradient(transparent 52%, var(--mark) 52%, var(--mark) 94%, transparent 94%);
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  padding: 0 2px; margin: 0 -2px;
+}
+
+/* etiqueta "Cumplida" */
+.badge {
+  display: inline-block; vertical-align: 1px;
+  padding: 2px 8px; margin-right: 6px; border-radius: 999px;
+  background: var(--pop); color: var(--on-pop);
+  font-size: 11px; font-weight: 600; letter-spacing: .01em;
+}
+
+/* ingresos en la lista de movimientos */
+.mv-amt.in { background: var(--pop); color: var(--on-pop); padding: 3px 9px; margin-right: -2px; border-radius: 999px; }
+
+/* filtro activo (Todos / Ingresos / Gastos) */
+.chip[aria-pressed="true"] { background: var(--pop); color: var(--on-pop); }
+
+/* botón del aviso inferior (Deshacer, Recargar) */
+.toast button { background: var(--pop); color: var(--on-pop); }
+
+/* "hoy" en las barras de la semana */
+.wk-col.today .wk-day { background: var(--pop); color: var(--on-pop); padding: 1px 7px; border-radius: 999px; margin-top: 7px; }
+
+/* botón "Cumplida" de cada meta */
+.mini-pop { background: var(--pop-soft); border-color: transparent; color: var(--ink); }
+.mini-pop:hover { background: var(--pop); color: var(--on-pop); border-color: transparent; }
+
+/* ---- metas cumplidas: quedan guardadas en el color secundario ---- */
+.goal.is-done .cat-name { color: var(--ink-2); font-weight: 400; }
+.goal.is-done .cat-amt { color: var(--ink-3); font-weight: 400; }
+.goal.is-done .goal-btn { padding: 13px 0; }
+.goal.is-done .cat-note { margin-top: 6px; }
+.goal-sep {
+  list-style: none; display: block;
+  padding: 28px 0 8px; border-bottom: 1px solid var(--line-2);
+  color: var(--ink-3); font-size: 12px; font-weight: 500;
+}
+
+/* ---- colores de categoría ---- */
+
+/* cuadradito al lado del nombre (redondeado, para no confundirse con el punto azul) */
+.sw {
+  display: inline-block; flex: none;
+  width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: .02em;
+  background: var(--c, var(--c-gray));
+}
+.mv-main .sw { margin-right: -6px; }
+.mv-txt { flex: 1; }
+.cat-chips button .sw { margin-right: 7px; }
+.tip-row .sw { margin-right: 6px; }
+
+/* barra de "En qué se va" con el color de su categoría */
+.cat .fill { background: var(--c, var(--ink)); }
+
+/* selector de color al editar una categoría */
+.cm-colors { grid-column: 1 / -1; }
+.cm-colors .lbl { margin-bottom: 10px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.swb {
+  width: 30px; height: 30px; border-radius: 9px; background: var(--c);
+  outline: 2px solid transparent; outline-offset: 2px;
+}
+.swb[aria-checked="true"] { outline-color: var(--ink); }
+.swb:hover { transform: scale(1.06); }

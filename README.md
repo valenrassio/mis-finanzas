@@ -19,6 +19,7 @@ Abrir en la compu: doble clic en `index.html` (así anda todo menos el modo sin 
 | `css/header.css` | Logo, selector de mes, menú |
 | `css/nav.css` | Encabezado fijo, links, hamburguesa y menú a pantalla completa |
 | `css/views.css` | Inicio, Metas y Categorías |
+| `css/color.css` | Lima para marcar, metas cumplidas en gris y colores de categoría |
 | `css/hero.css` | Balance del mes y gráfico |
 | `css/lists.css` | Categorías y movimientos |
 | `css/sheet.css` | El punto, el formulario y el aviso |
@@ -58,8 +59,8 @@ Cuatro secciones. En la compu van en el encabezado (el punto azul marca dónde e
 
 - **Inicio**: mira para adelante, no repite Movimientos. Número grande: **cuánto podés gastar por día** hasta fin de mes (lo que te queda ÷ días que faltan). Gastado hoy, en los últimos 7 días y promedio diario. Barras de los últimos 7 días (el punto marca hoy). **Cómo venís**: ritmo contra tus 3 meses anteriores a la misma altura, la categoría que más subió, cómo cerrarías el mes y avisos de topes. Resumen de metas.
 - **Movimientos**: balance del mes elegido (flechas o teclas ← / →), gráfico del balance acumulado, "En qué se va" con topes, y la lista con filtros y búsqueda. Tocar uno lo edita; la ✕ lo borra (con "Deshacer").
-- **Metas**: nombre, cuánto querés juntar, cuánto tenés y para cuándo. Te dice el % y cuánto juntar por mes para llegar. Botones **Sumar** y **Sacar** en cada meta. Cuando se cumple, el punto aparece al final de la barra.
-- **Categorías**: crear, renombrar, ponerle tope o borrar categorías de gastos e ingresos. Al renombrar se actualizan todos los movimientos; al borrar, sus movimientos pasan a "Otros" (que no se puede borrar).
+- **Metas**: nombre, cuánto querés juntar, cuánto tenés y para cuándo. Te dice el % y cuánto juntar por mes para llegar. Botones **Sumar**, **Sacar** y **Cumplida** (para darla por cumplida aunque no hayas juntado todo). Al llegar al objetivo se cumple sola. Las cumplidas quedan guardadas abajo, en gris y con la etiqueta lima "Cumplida"; con **Reabrir** vuelven a estar en curso. En el Inicio aparecen todas: primero las que faltan, después las cumplidas.
+- **Categorías**: crear, renombrar, elegir **color**, ponerle tope o borrar categorías de gastos e ingresos. El color aparece en todos lados (lista, formulario, barras de "En qué se va"). Al renombrar se actualizan todos los movimientos; al borrar, sus movimientos pasan a "Otros" (gris, no se puede borrar).
 - **El punto azul** (abajo a la derecha, o la tecla `N`): nuevo movimiento. En Metas: nueva meta.
 - **Opciones**: instalar en el celular, exportar copia `.json`, importar copia, ver datos de ejemplo, borrar todo.
 
@@ -70,7 +71,9 @@ Cuatro secciones. En la compu van en el encabezado (el punto azul marca dónde e
 Basado en estas reglas:
 
 - **Una sola tipografía**: Inter Tight (guardada en `fonts/`), con números tabulares.
-- **Un solo color de acento**: azul `#2347FF` (`#5E7BFF` en modo oscuro). Se usa solo en **el punto** y en la palabra clave del título (el mes).
+- **Azul** `#2347FF` (`#5E7BFF` en oscuro): solo **el punto** y la palabra clave del título.
+- **Lima** `#CDF54A` (`#C6F03C` en oscuro), siempre con texto oscuro encima: **marca lo importante**. Resaltador en los números de "Cómo venís", ingresos en la lista, filtro activo, "hoy" en las barras, etiqueta "Cumplida", botón Deshacer.
+- **Colores de categoría**: 8 colores validados para daltonismo en claro y oscuro (`css/tokens.css`, `--c-*`), siempre al lado del nombre. Gastos arrancan por naranja (para no confundirse con el punto), ingresos por verde. "Otros" es gris.
 - Mucho espacio vacío, líneas finas en lugar de tarjetas, sin degradados, sombras ni brillos.
 - Modo claro y oscuro automático según el sistema.
 
