@@ -1,10 +1,11 @@
-/* Menú "Opciones": exportar, importar, datos de ejemplo y borrar todo. */
+/* Menú "Opciones" (en la compu) y las mismas opciones dentro del menú de hamburguesa (en el celular):
+   instalar, exportar, importar, datos de ejemplo y borrar todo. */
 (function (MF) {
   'use strict';
-  const { $, iso, store } = MF;
+  const { $, $$, iso, store } = MF;
   const { unfold } = MF.motion;
 
-  const menu = $('#menu'), btn = $('#menuBtn'), wipeBtn = $('#menuWipe'), fileInput = $('#importFile');
+  const menu = $('#menu'), btn = $('#menuBtn'), fileInput = $('#importFile');
   let wipeArmed = false, wipeTimer;
 
   function open() {
@@ -18,7 +19,13 @@
     btn.setAttribute('aria-expanded', 'false');
     disarmWipe();
   }
-  function disarmWipe() { wipeArmed = false; clearTimeout(wipeTimer); wipeBtn.textContent = 'Borrar todo'; }
+  function disarmWipe() {
+    wipeArmed = false;
+    clearTimeout(wipeTimer);
+    $$('[data-act="wipe"]').forEach(b => { b.textContent = 'Borrar todo'; });
+  }
+  /* Cierra el menú que esté abierto, el de la compu o el de la hamburguesa. */
+  const closeAll = () => { close(); MF.nav.closeDrawer(); };
 
   btn.addEventListener('click', e => { e.stopPropagation(); menu.hidden ? open() : close(); });
   document.addEventListener('click', e => { if (!e.target.closest('.menu-wrap')) close(); });
@@ -28,8 +35,8 @@
     const before = store.snapshot();
     store.db = next;
     store.save();
-    MF.render('month');
-    MF.toast(msg, () => { store.db = before; store.save(); MF.render('month'); });
+    MF.render('view');
+    MF.toast(msg, () => { store.db = before; store.save(); MF.render('view'); });
   }
 
   async function exportData() {
@@ -64,11 +71,12 @@
   /* Acciones con data-act, en cualquier parte de la página. */
   const actions = {
     new: () => MF.sheet.open(),
+    'new-goal': () => MF.sheet.openGoal(),
     install: () => MF.pwa.install(),
-    export: () => { exportData(); close(); },
-    import: () => { fileInput.click(); close(); },
-    sample: () => { close(); store.loadSample(); store.save(); MF.render('month'); },
-    'wipe-sample': () => replaceAll({ tx: [], budgets: {}, sample: false }, 'Datos de ejemplo borrados'),
+    export: () => { exportData(); closeAll(); },
+    import: () => { fileInput.click(); closeAll(); },
+    sample: () => { closeAll(); store.loadSample(); store.save(); MF.render('view'); },
+    'wipe-sample': () => replaceAll(store.empty(), 'Datos de ejemplo borrados'),
     wipe: el => {
       if (!wipeArmed) {
         wipeArmed = true;
@@ -76,8 +84,9 @@
         wipeTimer = setTimeout(disarmWipe, 3500);
         return;
       }
-      close();
-      replaceAll({ tx: [], budgets: {}, sample: false }, 'Se borró todo');
+      disarmWipe();
+      closeAll();
+      replaceAll(store.empty(), 'Se borró todo');
     },
   };
   document.addEventListener('click', e => {

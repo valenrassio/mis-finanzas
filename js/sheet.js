@@ -1,28 +1,31 @@
-/* Formulario de movimiento. El punto azul se abre como un círculo y se convierte en el formulario;
+/* Formulario de movimiento o de meta. El punto azul se abre como un círculo y se convierte en el formulario;
    al cerrar, el formulario vuelve a ser el punto. */
 (function (MF) {
   'use strict';
-  const { $, $$, CATS, now, iso, esc, clamp, lerp, parseAmount, store } = MF;
+  const { $, $$, now, iso, esc, clamp, lerp, nf, parseAmount, store } = MF;
   const { animate, reveal, grow, unfold, reduceMQ } = MF.motion;
 
   const wrap = $('#sheetWrap'), sheet = $('#sheet'), flood = $('#flood'), scrim = $('#scrim'), fab = $('#fab');
   const fAmount = $('#fAmount'), fDate = $('#fDate'), fNote = $('#fNote'), fErr = $('#fErr');
+  const gName = $('#gName'), gTarget = $('#gTargetIn'), gSaved = $('#gSavedIn'), gDate = $('#gDate'), gErr = $('#gErr');
   const segThumb = $('#segThumb');
 
-  const form = { type: 'out', cat: null, editing: null };
+  // mode: 'move' (movimiento) o 'goal' (meta). editing: el objeto que se edita, o null si es nuevo.
+  const form = { mode: 'move', type: 'out', cat: null, editing: null };
   let isOpen = false;
   const thumb = { x: 0, w: 0 };
 
   /* ---- tipo y categoría ---- */
   function mostUsed(type) {
+    const cats = store.cats(type);
     const count = {};
     for (const t of store.db.tx) if (t.type === type) count[t.category] = (count[t.category] || 0) + 1;
     const top = Object.entries(count).sort((a, b) => b[1] - a[1])[0];
-    return top && CATS[type].includes(top[0]) ? top[0] : CATS[type][0];
+    return top && cats.includes(top[0]) ? top[0] : cats[0];
   }
 
   function renderChips() {
-    $('#fCats').innerHTML = CATS[form.type]
+    $('#fCats').innerHTML = store.cats(form.type)
       .map(c => `<button type="button" data-chip="${esc(c)}" aria-pressed="${c === form.cat}">${esc(c)}</button>`).join('');
   }
 
@@ -36,7 +39,7 @@
     const paint = (x, w) => { segThumb.style.transform = `translateX(${x}px)`; segThumb.style.width = `${w}px`; };
     if (!animated) paint(to.x, to.w);
     else animate(segThumb, { w: 18, update: p => paint(lerp(from.x, to.x, p), lerp(from.w, to.w, p)) });
-    if (!CATS[type].includes(form.cat)) form.cat = mostUsed(type);
+    if (!store.cats(type).includes(form.cat)) form.cat = mostUsed(type);
     renderChips();
   }
 
@@ -51,7 +54,7 @@
   /* Fecha por defecto: hoy si se ve el mes actual; si no, un día dentro del mes visible. */
   function defaultDate() {
     const { y, m } = store.view;
-    if (y === now.getFullYear() && m === now.getMonth()) return iso(now);
+    if (MF.nav.current() !== 'movimientos' || (y === now.getFullYear() && m === now.getMonth())) return iso(now);
     return iso(new Date(y, m, 1) > now ? new Date(y, m, 1) : new Date(y, m + 1, 0));
   }
 
@@ -63,26 +66,38 @@
     return { cx, cy, R, r0: f.width / 2 };
   }
 
-  function fill(tx) {
-    form.editing = tx || null;
+  function fillMove(tx) {
     $('#sheetTitle').textContent = tx ? 'Editar movimiento' : 'Nuevo movimiento';
     fAmount.value = tx ? String(tx.amount).replace('.', ',') : '';
     fDate.value = tx ? tx.date : defaultDate();
     fNote.value = tx ? tx.note || '' : '';
     fErr.textContent = '';
     form.cat = tx ? tx.category : null;
-    $('#fDelete').hidden = !tx;
   }
 
-  function open(tx) {
+  function fillGoal(g) {
+    $('#sheetTitle').textContent = g ? 'Editar meta' : 'Nueva meta';
+    gName.value = g ? g.name : '';
+    gTarget.value = g ? nf.format(g.target) : '';
+    gSaved.value = g && g.saved ? nf.format(g.saved) : '';
+    gDate.value = g ? g.deadline || '' : '';
+    $('#gSavedLbl').textContent = g ? 'Ahorrado hasta ahora' : 'Ya tengo (opcional)';
+    gErr.textContent = '';
+  }
+
+  function openWith(mode, item) {
     if (isOpen) return;
     isOpen = true;
     MF.menu && MF.menu.close();
-    fill(tx);
+    MF.nav && MF.nav.closeDrawer(true);
+    form.mode = mode;
+    form.editing = item || null;
+    $$('.sheet-body', sheet).forEach(b => { b.hidden = b.dataset.mode !== mode; });
+    $('#fDelete').hidden = !item;
+    if (mode === 'goal') fillGoal(item); else fillMove(item);
     wrap.hidden = false;
     sheet.scrollTop = 0;
-    thumb.w = 0;
-    setType(tx ? tx.type : 'out', false);
+    if (mode === 'move') { thumb.w = 0; setType(item ? item.type : 'out', false); }
     $('#main').inert = true;
 
     const { cx, cy, R, r0 } = geom();
@@ -100,9 +115,10 @@
       },
       done: () => { sheet.style.clipPath = ''; flood.style.opacity = 0; },
     });
-    reveal($$('.reveal-i', sheet), { delay: 0.16, stagger: 0.03 });
-    [$('#seg'), $('.amount-row'), $('#fCats'), $('.sheet-f')].forEach((el, i) => unfold(el, { delay: 0.2 + i * 0.05 }));
-    setTimeout(() => fAmount.focus({ preventScroll: true }), reduceMQ.matches ? 0 : 280);
+    reveal($$('.sheet-h .reveal-i, .sheet-body:not([hidden]) .reveal-i', sheet), { delay: 0.16, stagger: 0.03 });
+    [...$$('.sheet-body:not([hidden]) > *', sheet), $('.sheet-f')].forEach((el, i) => unfold(el, { delay: 0.2 + i * 0.05 }));
+    const first = mode === 'goal' ? gName : fAmount;
+    setTimeout(() => first.focus({ preventScroll: true }), reduceMQ.matches ? 0 : 280);
   }
 
   function close(after) {
@@ -130,34 +146,63 @@
   }
 
   /* ---- guardar ---- */
-  sheet.addEventListener('submit', e => {
-    e.preventDefault();
+  function saveMove() {
     const amount = parseAmount(fAmount.value);
     if (!(amount > 0)) { fErr.textContent = 'Ingresá un monto mayor a cero.'; fAmount.focus(); return; }
     const date = /^\d{4}-\d{2}-\d{2}$/.test(fDate.value) ? fDate.value : iso(now);
-    const data = { type: form.type, amount, category: form.cat || CATS[form.type][0], note: fNote.value.trim(), date };
+    const data = { type: form.type, amount, category: form.cat || store.cats(form.type)[0], note: fNote.value.trim(), date };
     const wasEdit = !!form.editing;
     if (form.editing) Object.assign(form.editing, data); else store.add(data);
     store.save();
 
     const [y, m] = date.split('-').map(Number);
     const { view } = store;
-    const moved = y !== view.y || m - 1 !== view.m;
+    const moved = MF.nav.current() === 'movimientos' && (y !== view.y || m - 1 !== view.m);
     close(() => {
       if (moved) MF.goToMonth(y, m - 1);
       else MF.render('data');
       MF.toast(wasEdit ? 'Movimiento actualizado' : 'Movimiento guardado');
     });
+  }
+
+  function saveGoal() {
+    const name = gName.value.trim();
+    const target = parseAmount(gTarget.value);
+    if (!name) { gErr.textContent = 'Ponele un nombre a la meta.'; gName.focus(); return; }
+    if (!(target > 0)) { gErr.textContent = 'Ingresá cuánto querés juntar.'; gTarget.focus(); return; }
+    const saved = Math.max(0, parseAmount(gSaved.value) || 0);
+    const deadline = /^\d{4}-\d{2}$/.test(gDate.value) ? gDate.value : '';
+    const wasEdit = !!form.editing;
+    if (wasEdit) store.updateGoal(form.editing.id, { name, target, saved, deadline });
+    else store.addGoal({ name, target, saved, deadline });
+    store.save();
+    close(() => {
+      if (MF.nav.current() !== 'metas') MF.nav.go('metas'); else MF.render('data');
+      MF.toast(wasEdit ? 'Meta actualizada' : 'Meta creada');
+    });
+  }
+
+  sheet.addEventListener('submit', e => {
+    e.preventDefault();
+    if (form.mode === 'goal') saveGoal(); else saveMove();
   });
 
   $('#fDelete').addEventListener('click', () => {
-    const t = form.editing;
-    if (t) close(() => MF.movements.remove(t.id));
+    const item = form.editing;
+    if (!item) return;
+    if (form.mode === 'goal') close(() => MF.goals.remove(item.id));
+    else close(() => MF.movements.remove(item.id));
   });
   $('#sheetClose').addEventListener('click', () => close());
   scrim.addEventListener('click', () => close());
-  fab.addEventListener('click', () => open());
+  fab.addEventListener('click', () => (MF.nav.current() === 'metas' ? openWith('goal') : openWith('move')));
   fAmount.addEventListener('input', () => { fErr.textContent = ''; });
+  [gName, gTarget].forEach(i => i.addEventListener('input', () => { gErr.textContent = ''; }));
 
-  MF.sheet = { open, close, isOpen: () => isOpen };
+  MF.sheet = {
+    open: tx => openWith('move', tx),
+    openGoal: g => openWith('goal', g),
+    close,
+    isOpen: () => isOpen,
+  };
 })(window.MF = window.MF || {});

@@ -5,5 +5,5 @@ button, .chip, .cat, .fab { -webkit-user-select: none; user-select: none; touch-
 
 /* Abierta desde el ícono: el encabezado deja lugar a la barra de estado del celular. */
 @media (display-mode: standalone) {
-  .top { box-sizing: content-box; padding-top: env(safe-area-inset-top, 0px); }
+  .topbar { padding-top: env(safe-area-inset-top, 0px); }
 }

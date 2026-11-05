@@ -1,0 +1,65 @@
+/* Secciones: Inicio, Metas y Categorías. Movimientos usa hero.css y lists.css. */
+
+.view { padding-bottom: 160px; }
+.view .grid { padding-bottom: 0; }
+
+/* selector de mes, arriba de Movimientos */
+#view-movimientos .month { margin: 28px 0 0 -8px; }
+#view-movimientos .month-label { text-align: left; min-width: 0; padding: 0 6px; }
+#view-movimientos .hero { padding-top: 36px; }
+
+.sub { color: var(--ink-3); font-size: 15px; margin-top: 14px; }
+.title {
+  font-size: clamp(40px, 7.4vw, 96px); font-weight: 500; letter-spacing: -.045em; line-height: 1;
+  margin-top: 14px;
+}
+.link { color: var(--ink-2); font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.link:hover { color: var(--ink); }
+.ghost.pad0 { padding-left: 0; padding-right: 0; }
+.ghost.pad0:hover { background: none; text-decoration: underline; text-underline-offset: 3px; }
+.sec-next { margin-top: 56px; }
+.block { margin-top: 64px; padding-top: 64px; border-top: 1px solid var(--line); }
+
+/* ---- metas (y topes del Inicio, que usan la misma fila) ---- */
+.goal-list { list-style: none; padding: 0; }
+.goal { border-bottom: 1px solid var(--line-2); }
+.goal-main { display: flex; align-items: center; gap: 24px; }
+.goal-btn { flex: 1; min-width: 0; display: block; text-align: left; padding: 16px 0; color: inherit; text-decoration: none; }
+.goal-acts { display: flex; gap: 6px; flex: none; }
+.mini {
+  padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px;
+  font-size: 13px; font-weight: 500; color: var(--ink-2);
+}
+.mini:hover { color: var(--ink); border-color: var(--ink-3); }
+.mini:disabled { opacity: .4; cursor: default; }
+.mini:disabled:hover { color: var(--ink-2); border-color: var(--line); }
+.end-dot { position: absolute; right: -6px; top: 50%; width: 12px; height: 12px; margin-top: -6px; }
+.goal-edit { border-bottom: 0; }
+.goal-list .empty { list-style: none; }
+
+/* ---- categorías ---- */
+.cm-list { list-style: none; padding: 0; }
+.cm { display: block; width: 100%; text-align: left; padding: 15px 0; border-bottom: 1px solid var(--line-2); }
+.cm-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.cm-name { font-weight: 500; }
+.cm-amt { font-weight: 500; white-space: nowrap; }
+.cm-amt span { color: var(--ink-3); font-weight: 400; }
+.cm-sub { display: block; font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+.cm-edit {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px;
+  padding: 6px 0 20px; border-bottom: 1px solid var(--line-2); overflow: hidden;
+}
+.cm-edit .lbl { margin-bottom: 4px; }
+.cm-edit .line-input:disabled { color: var(--ink-3); }
+.cm-edit .err { grid-column: 1 / -1; margin: 0; min-height: 0; }
+.cm-edit .err:empty { display: none; }
+.cm-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; }
+.cm-actions .primary { margin-left: auto; }
+.cm-add { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 12px; }
+.cm-add .line-input { flex: 1; min-width: 0; }
+.cm-add .err { flex-basis: 100%; margin-top: 0; min-height: 0; }
+
+/* ---- formulario de meta ---- */
+.sheet-body { display: flex; flex-direction: column; gap: 30px; }
+.name-input { font-size: 22px; font-weight: 500; letter-spacing: -.01em; }
+.title + .sub { margin-top: 24px; }

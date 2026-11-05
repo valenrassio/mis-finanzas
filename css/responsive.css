@@ -11,7 +11,7 @@
   .brand-name { display: none; }
   .month-label { min-width: 128px; }
   .hero { padding: 40px 0 20px; }
-  .stats { gap: 28px 32px; flex-wrap: wrap; margin-top: 32px; }
+  .stats { gap: 24px 22px; flex-wrap: wrap; margin-top: 32px; }
   .stats dd { font-size: 20px; }
   .plot { height: 170px; }
   .grid { margin-top: 40px; padding: 40px 0 140px; }
@@ -25,4 +25,25 @@
   .amount input { font-size: 44px; }
   .row2 { grid-template-columns: 1fr; }
   .toast { bottom: 88px; }
+}
+
+/* Navegación: en tablet y celular las secciones van en el menú de hamburguesa. */
+@media (max-width: 860px) {
+  .nav, .menu-wrap { display: none; }
+  .burger { display: block; }
+  .brand-name { display: none; }
+  .brand-view { display: block; }
+  .cm-grid { gap: 56px; }
+}
+@media (max-width: 640px) {
+  .view { padding-bottom: 140px; }
+  #view-movimientos .month { margin-top: 12px; }
+  #view-movimientos .hero { padding-top: 24px; }
+  .block { margin-top: 40px; padding-top: 40px; }
+  .goal-main { flex-wrap: wrap; gap: 0; }
+  .goal-btn { flex-basis: 100%; padding-bottom: 12px; }
+  .goal-acts { padding-bottom: 16px; }
+  .cm-edit { grid-template-columns: 1fr; }
+  .sheet-body { gap: 26px; }
+  .drawer-nav a { font-size: 30px; }
 }

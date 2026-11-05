@@ -2,7 +2,7 @@
    no borre los datos y agrega "Instalar en el celular" al menú. */
 (function (MF) {
   'use strict';
-  const { $ } = MF;
+  const { $$ } = MF;
 
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -20,20 +20,21 @@
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 
   /* ---- instalar ---- */
-  const btn = $('#menuInstall');
+  const btns = $$('.opt-install');
   let deferred = null;
 
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferred = e;
-    btn.hidden = false;
+    btns.forEach(b => { b.hidden = false; });
   });
-  window.addEventListener('appinstalled', () => { deferred = null; btn.hidden = true; MF.toast('Listo, ya está en tu pantalla de inicio'); });
+  window.addEventListener('appinstalled', () => { deferred = null; btns.forEach(b => { b.hidden = true; }); MF.toast('Listo, ya está en tu pantalla de inicio'); });
 
-  if (!standalone && isIOS) btn.hidden = false;
+  if (!standalone && isIOS) btns.forEach(b => { b.hidden = false; });
 
   function install() {
     MF.menu.close();
+    MF.nav.closeDrawer();
     if (deferred) { deferred.prompt(); deferred.userChoice.finally(() => { deferred = null; }); return; }
     if (isIOS) MF.toast('Tocá Compartir y después "Agregar a inicio"');
   }

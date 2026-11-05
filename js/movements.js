@@ -88,5 +88,5 @@
     render(store.inMonth(store.view.y, store.view.m), 'data');
   });
 
-  MF.movements = { render, remove };
+  MF.movements = { render, remove, dayLabel };
 })(window.MF = window.MF || {});

@@ -1,11 +1,12 @@
-/* Arranque: encabezado del balance, navegación por mes, teclado y animación de entrada.
-   MF.render() redibuja todo; mode = 'intro' | 'month' | 'data'. */
+/* Arranque: dibuja la sección activa, navegación por mes, teclado y animación de entrada.
+   MF.render() redibuja la sección que se está viendo; mode = 'intro' | 'view' | 'month' | 'data'. */
 (function (MF) {
   'use strict';
-  const { $, $$, MONTHS, cap, signed, money, store } = MF;
+  const { $, $$, MONTHS, now, cap, signed, money, store } = MF;
   const { countTo, swapText, reveal, grow } = MF.motion;
 
-  function renderHero(monthTx) {
+  /* ---- Movimientos: balance del mes elegido ---- */
+  function renderMonthHero(monthTx) {
     const { view } = store;
     const s = store.sum(monthTx);
     const net = s.in - s.out;
@@ -22,20 +23,37 @@
       const d = Math.round(((s.out - ps.out) / ps.out) * 100);
       cmp.textContent = `${d > 0 ? '+' : d < 0 ? '−' : ''}${Math.abs(d)}% vs ${MONTHS[pv.m]}`;
     } else cmp.textContent = '';
+  }
 
-    $('#notice').hidden = !store.db.sample;
-    $('#menuSample').hidden = store.db.tx.length > 0;
+  function renderMonth(mode) {
+    const monthTx = store.inMonth(store.view.y, store.view.m);
+    renderMonthHero(monthTx);
+    MF.chart.render(monthTx, mode === 'view' ? 'month' : mode);
+    MF.categories.render(monthTx, mode);
+    MF.movements.render(monthTx, mode);
+  }
+
+  /* Lo que se comparte entre secciones: aviso de ejemplo, opciones del menú y datos del menú del celular. */
+  function renderShared() {
+    $$('[data-sample-notice]').forEach(n => { n.hidden = !store.db.sample; });
+    $$('.opt-sample').forEach(b => { b.hidden = store.db.tx.length > 0; });
+    const active = store.db.goals.filter(g => g.saved < g.target).length;
+    MF.nav.setMeta('inicio', `${now.getDate()} de ${MONTHS[now.getMonth()]}`);
+    MF.nav.setMeta('movimientos', `${MONTHS[store.view.m]}${store.view.y !== now.getFullYear() ? ` ${store.view.y}` : ''}`);
+    MF.nav.setMeta('metas', store.db.goals.length ? `${active} en curso` : '');
+    MF.nav.setMeta('categorias', `${store.db.cats.out.length + store.db.cats.in.length}`);
   }
 
   MF.render = function (mode = 'data') {
-    const monthTx = store.inMonth(store.view.y, store.view.m);
-    renderHero(monthTx);
-    MF.chart.render(monthTx, mode);
-    MF.categories.render(monthTx, mode);
-    MF.movements.render(monthTx, mode);
+    renderShared();
+    const v = MF.nav.current();
+    if (v === 'inicio') MF.home.render(mode);
+    else if (v === 'metas') MF.goals.render(mode);
+    else if (v === 'categorias') MF.catManage.render(mode);
+    else renderMonth(mode);
   };
 
-  /* ---- meses ---- */
+  /* ---- meses (en Movimientos) ---- */
   function syncMonthLabels(dir = 1) {
     const { y, m } = store.view;
     swapText($('#monthLabel'), `${cap(MONTHS[m])} ${y}`, dir);
@@ -56,12 +74,22 @@
 
   /* ---- teclado ---- */
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { if (MF.sheet.isOpen()) MF.sheet.close(); else MF.menu.close(); return; }
+    if (e.key === 'Escape') {
+      if (MF.sheet.isOpen()) MF.sheet.close();
+      else if (MF.nav.isDrawerOpen()) MF.nav.closeDrawer();
+      else MF.menu.close();
+      return;
+    }
     const typing = e.target.closest('input, textarea, select, [contenteditable]');
-    if (typing || MF.sheet.isOpen() || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.key === 'n' || e.key === 'N') { e.preventDefault(); MF.sheet.open(); }
-    if (e.key === 'ArrowLeft') step(-1);
-    if (e.key === 'ArrowRight') step(1);
+    if (typing || MF.sheet.isOpen() || MF.nav.isDrawerOpen() || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'n' || e.key === 'N') {
+      e.preventDefault();
+      if (MF.nav.current() === 'metas') MF.sheet.openGoal(); else MF.sheet.open();
+    }
+    if (MF.nav.current() === 'movimientos') {
+      if (e.key === 'ArrowLeft') step(-1);
+      if (e.key === 'ArrowRight') step(1);
+    }
   });
 
   /* ---- entrada ---- */
@@ -69,8 +97,10 @@
   const { y, m } = store.view;
   $('#monthLabel').textContent = `${cap(MONTHS[m])} ${y}`;
   $('#heroMonth').textContent = MONTHS[m];
+  MF.nav.init();
+  const v = MF.nav.current();
   grow($('#brandDot'));
-  reveal([$('#monthLabel'), ...$$('.hero .reveal-i')], { delay: 0.05, stagger: 0.045 });
+  reveal([$('#viewName'), ...$$(`#view-${v} .hero .reveal-i, #view-${v} .month .reveal-i`)], { delay: 0.05, stagger: 0.045 });
   grow($('#fab'), { delay: 0.55 });
   MF.render('intro');
 })(window.MF = window.MF || {});

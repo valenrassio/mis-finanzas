@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mis finanzas</title>
-<meta name="description" content="Ingresos, gastos y topes por categoría. Funciona sin conexión.">
+<meta name="description" content="Ingresos, gastos, metas y topes por categoría. Funciona sin conexión.">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%232347FF'/%3E%3C/svg%3E">
 
@@ -22,105 +22,247 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/header.css">
+<link rel="stylesheet" href="css/nav.css">
 <link rel="stylesheet" href="css/hero.css">
 <link rel="stylesheet" href="css/lists.css">
+<link rel="stylesheet" href="css/views.css">
 <link rel="stylesheet" href="css/sheet.css">
 <link rel="stylesheet" href="css/responsive.css">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 
-<header class="top wrap">
-  <a class="brand" href="./" aria-label="Mis finanzas, inicio">
-    <span class="dot" id="brandDot"></span><span class="brand-name">mis finanzas</span>
-  </a>
-  <nav class="month" aria-label="Cambiar mes">
-    <button type="button" id="prevM" aria-label="Mes anterior">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>
+<!-- ============ Encabezado ============ -->
+<div class="topbar" id="topbar">
+  <header class="top wrap">
+    <a class="brand" href="#inicio" aria-label="Mis finanzas, ir al inicio">
+      <span class="dot" id="brandDot"></span>
+      <span class="brand-name">mis finanzas</span>
+      <span class="brand-view reveal" aria-hidden="true"><span class="reveal-i" id="viewName">Inicio</span></span>
+    </a>
+
+    <nav class="nav" aria-label="Secciones">
+      <a href="#inicio" data-view-link="inicio">Inicio</a>
+      <a href="#movimientos" data-view-link="movimientos">Movimientos</a>
+      <a href="#metas" data-view-link="metas">Metas</a>
+      <a href="#categorias" data-view-link="categorias">Categorías</a>
+      <span class="nav-dot" id="navDot" aria-hidden="true"></span>
+    </nav>
+
+    <div class="menu-wrap">
+      <button type="button" class="ghost" id="menuBtn" aria-haspopup="true" aria-expanded="false">Opciones</button>
+      <div class="menu" id="menu" hidden>
+        <button type="button" class="opt opt-install" data-act="install" hidden>Instalar en el celular</button>
+        <button type="button" class="opt" data-act="export">Exportar copia (.json)</button>
+        <button type="button" class="opt" data-act="import">Importar copia</button>
+        <button type="button" class="opt opt-sample" data-act="sample">Ver con datos de ejemplo</button>
+        <button type="button" class="opt" data-act="wipe">Borrar todo</button>
+      </div>
+    </div>
+
+    <button type="button" class="burger" id="burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="drawer">
+      <span></span><span></span>
     </button>
-    <span class="reveal month-label"><span class="reveal-i" id="monthLabel"></span></span>
-    <button type="button" id="nextM" aria-label="Mes siguiente">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg>
-    </button>
+  </header>
+</div>
+
+<!-- ============ Menú de hamburguesa (celular) ============ -->
+<div class="drawer" id="drawer" hidden>
+  <nav class="drawer-nav wrap" aria-label="Secciones">
+    <a href="#inicio" data-view-link="inicio"><span class="d-label"><span class="dot"></span><span class="reveal"><span class="reveal-i">Inicio</span></span></span><small data-meta="inicio"></small></a>
+    <a href="#movimientos" data-view-link="movimientos"><span class="d-label"><span class="dot"></span><span class="reveal"><span class="reveal-i">Movimientos</span></span></span><small data-meta="movimientos"></small></a>
+    <a href="#metas" data-view-link="metas"><span class="d-label"><span class="dot"></span><span class="reveal"><span class="reveal-i">Metas</span></span></span><small data-meta="metas"></small></a>
+    <a href="#categorias" data-view-link="categorias"><span class="d-label"><span class="dot"></span><span class="reveal"><span class="reveal-i">Categorías</span></span></span><small data-meta="categorias"></small></a>
   </nav>
-  <div class="menu-wrap">
-    <button type="button" class="ghost" id="menuBtn" aria-haspopup="true" aria-expanded="false">Opciones</button>
-    <div class="menu" id="menu" hidden>
-      <button type="button" data-act="install" id="menuInstall" hidden>Instalar en el celular</button>
-      <button type="button" data-act="export">Exportar copia (.json)</button>
-      <button type="button" data-act="import">Importar copia</button>
-      <button type="button" data-act="sample" id="menuSample">Ver con datos de ejemplo</button>
-      <button type="button" data-act="wipe" id="menuWipe">Borrar todo</button>
-    </div>
+  <div class="drawer-opts wrap">
+    <button type="button" class="opt opt-install" data-act="install" hidden>Instalar en el celular</button>
+    <button type="button" class="opt" data-act="export">Exportar copia</button>
+    <button type="button" class="opt" data-act="import">Importar copia</button>
+    <button type="button" class="opt opt-sample" data-act="sample">Ver con datos de ejemplo</button>
+    <button type="button" class="opt" data-act="wipe">Borrar todo</button>
   </div>
-</header>
+</div>
 
-<main id="main" class="wrap">
-  <section class="hero" aria-live="polite">
-    <p class="eyebrow"><span class="reveal"><span class="reveal-i">Balance de <span class="key" id="heroMonth"></span></span></span></p>
-    <h1 class="balance"><span class="reveal"><span class="reveal-i" id="balance">$ 0</span></span></h1>
-    <dl class="stats">
-      <div>
-        <dt><span class="reveal"><span class="reveal-i">Ingresos</span></span></dt>
-        <dd><span class="reveal"><span class="reveal-i" id="sIn">$ 0</span></span></dd>
-      </div>
-      <div>
-        <dt><span class="reveal"><span class="reveal-i">Gastos</span></span></dt>
-        <dd><span class="reveal"><span class="reveal-i" id="sOut">$ 0</span></span></dd>
-        <small id="sOutCmp"></small>
-      </div>
-      <div>
-        <dt><span class="reveal"><span class="reveal-i">Ahorro</span></span></dt>
-        <dd><span class="reveal"><span class="reveal-i" id="sSave">—</span></span></dd>
-      </div>
-    </dl>
-    <p class="notice" id="notice" hidden>Estás viendo datos de ejemplo. <button type="button" data-act="wipe-sample">Borrarlos y empezar</button></p>
-  </section>
+<main id="main">
 
-  <section class="chart" id="chart" aria-label="Evolución del balance en el mes">
-    <div class="plot" id="plot">
-      <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
-        <line class="zero" id="zero" x1="0" x2="1000" y1="50" y2="50"/>
-        <path class="line" id="line" d=""/>
-      </svg>
-      <span class="rule" id="rule" hidden></span>
-      <span class="hover-dot" id="hoverDot" hidden></span>
-      <span class="dot chart-dot" id="chartDot"></span>
-      <span class="tip" id="tip" hidden></span>
-    </div>
-    <div class="axis" id="axis"></div>
-  </section>
-
-  <div class="grid">
-    <section class="cats">
-      <header class="sec-h">
-        <h2>En qué se va</h2>
-        <span class="hint">Tocá una categoría para ponerle tope</span>
-      </header>
-      <ol id="catList" class="cat-list"></ol>
-    </section>
-
-    <section class="moves">
-      <header class="sec-h">
-        <h2>Movimientos</h2>
-        <div class="tools">
-          <div class="chipset" role="group" aria-label="Filtrar movimientos">
-            <button type="button" class="chip" data-filter="all" aria-pressed="true">Todos</button>
-            <button type="button" class="chip" data-filter="in" aria-pressed="false">Ingresos</button>
-            <button type="button" class="chip" data-filter="out" aria-pressed="false">Gastos</button>
-          </div>
-          <input class="search" id="search" type="search" placeholder="Buscar" aria-label="Buscar movimientos">
+  <!-- ============ Inicio ============ -->
+  <section class="view wrap" id="view-inicio" aria-label="Inicio" hidden>
+    <div class="hero">
+      <p class="eyebrow"><span class="reveal"><span class="reveal-i" id="hGreet"></span></span></p>
+      <h1 class="balance"><span class="reveal"><span class="reveal-i" id="hBalance">$ 0</span></span></h1>
+      <p class="sub"><span class="reveal"><span class="reveal-i">Es lo que te queda este mes</span></span></p>
+      <dl class="stats">
+        <div>
+          <dt><span class="reveal"><span class="reveal-i">Ingresos</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="hIn">$ 0</span></span></dd>
         </div>
-      </header>
-      <div id="moveList"></div>
+        <div>
+          <dt><span class="reveal"><span class="reveal-i">Gastos</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="hOut">$ 0</span></span></dd>
+        </div>
+        <div>
+          <dt><span class="reveal"><span class="reveal-i">En metas</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="hGoalsSaved">$ 0</span></span></dd>
+        </div>
+      </dl>
+      <p class="notice" data-sample-notice hidden>Estás viendo datos de ejemplo. <button type="button" data-act="wipe-sample">Borrarlos y empezar</button></p>
+    </div>
+
+    <div class="grid home-grid">
+      <div>
+        <section>
+          <header class="sec-h"><h2>Metas</h2><a class="link" href="#metas">Ver todas</a></header>
+          <ol class="goal-list" id="hGoals"></ol>
+        </section>
+        <section class="sec-next">
+          <header class="sec-h"><h2>Topes del mes</h2><a class="link" href="#categorias">Categorías</a></header>
+          <ol class="goal-list" id="hCaps"></ol>
+        </section>
+      </div>
+      <section>
+        <header class="sec-h"><h2>Últimos movimientos</h2><a class="link" href="#movimientos">Ver todos</a></header>
+        <div id="hMoves"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ Movimientos ============ -->
+  <section class="view wrap" id="view-movimientos" aria-label="Movimientos" hidden>
+    <nav class="month" aria-label="Cambiar mes">
+      <button type="button" id="prevM" aria-label="Mes anterior">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>
+      </button>
+      <span class="reveal month-label"><span class="reveal-i" id="monthLabel"></span></span>
+      <button type="button" id="nextM" aria-label="Mes siguiente">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg>
+      </button>
+    </nav>
+
+    <div class="hero" aria-live="polite">
+      <p class="eyebrow"><span class="reveal"><span class="reveal-i">Balance de <span class="key" id="heroMonth"></span></span></span></p>
+      <h1 class="balance"><span class="reveal"><span class="reveal-i" id="balance">$ 0</span></span></h1>
+      <dl class="stats">
+        <div>
+          <dt><span class="reveal"><span class="reveal-i">Ingresos</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="sIn">$ 0</span></span></dd>
+        </div>
+        <div>
+          <dt><span class="reveal"><span class="reveal-i">Gastos</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="sOut">$ 0</span></span></dd>
+          <small id="sOutCmp"></small>
+        </div>
+        <div>
+          <dt><span class="reveal"><span class="reveal-i">Ahorro</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="sSave">—</span></span></dd>
+        </div>
+      </dl>
+      <p class="notice" data-sample-notice hidden>Estás viendo datos de ejemplo. <button type="button" data-act="wipe-sample">Borrarlos y empezar</button></p>
+    </div>
+
+    <section class="chart" id="chart" aria-label="Evolución del balance en el mes">
+      <div class="plot" id="plot">
+        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+          <line class="zero" id="zero" x1="0" x2="1000" y1="50" y2="50"/>
+          <path class="line" id="line" d=""/>
+        </svg>
+        <span class="rule" id="rule" hidden></span>
+        <span class="hover-dot" id="hoverDot" hidden></span>
+        <span class="dot chart-dot" id="chartDot"></span>
+        <span class="tip" id="tip" hidden></span>
+      </div>
+      <div class="axis" id="axis"></div>
     </section>
-  </div>
+
+    <div class="grid">
+      <section class="cats">
+        <header class="sec-h">
+          <h2>En qué se va</h2>
+          <span class="hint">Tocá una categoría para ponerle tope</span>
+        </header>
+        <ol id="catList" class="cat-list"></ol>
+      </section>
+
+      <section class="moves">
+        <header class="sec-h">
+          <h2>Movimientos</h2>
+          <div class="tools">
+            <div class="chipset" role="group" aria-label="Filtrar movimientos">
+              <button type="button" class="chip" data-filter="all" aria-pressed="true">Todos</button>
+              <button type="button" class="chip" data-filter="in" aria-pressed="false">Ingresos</button>
+              <button type="button" class="chip" data-filter="out" aria-pressed="false">Gastos</button>
+            </div>
+            <input class="search" id="search" type="search" placeholder="Buscar" aria-label="Buscar movimientos">
+          </div>
+        </header>
+        <div id="moveList"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ Metas ============ -->
+  <section class="view wrap" id="view-metas" aria-label="Metas" hidden>
+    <div class="hero">
+      <p class="eyebrow"><span class="reveal"><span class="reveal-i">Ahorrado en tus <span class="key">metas</span></span></span></p>
+      <h1 class="balance"><span class="reveal"><span class="reveal-i" id="gTotal">$ 0</span></span></h1>
+      <dl class="stats">
+        <div>
+          <dt><span class="reveal"><span class="reveal-i">Objetivo</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="gTarget">$ 0</span></span></dd>
+        </div>
+        <div>
+          <dt><span class="reveal"><span class="reveal-i">Te falta</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="gLeft">$ 0</span></span></dd>
+        </div>
+        <div>
+          <dt><span class="reveal"><span class="reveal-i">Cumplidas</span></span></dt>
+          <dd><span class="reveal"><span class="reveal-i" id="gDone">—</span></span></dd>
+        </div>
+      </dl>
+    </div>
+    <section class="block">
+      <header class="sec-h">
+        <h2>Tus metas</h2>
+        <button type="button" class="ghost" data-act="new-goal">Nueva meta</button>
+      </header>
+      <ol class="goal-list" id="goalList"></ol>
+    </section>
+  </section>
+
+  <!-- ============ Categorías ============ -->
+  <section class="view wrap" id="view-categorias" aria-label="Categorías" hidden>
+    <div class="hero">
+      <p class="eyebrow"><span class="reveal"><span class="reveal-i">Tus <span class="key">categorías</span></span></span></p>
+      <h1 class="title"><span class="reveal"><span class="reveal-i">En qué gastás</span></span><br><span class="reveal"><span class="reveal-i">y de dónde entra</span></span></h1>
+      <p class="sub"><span class="reveal"><span class="reveal-i">Tocá una para renombrarla, ponerle tope o borrarla.</span></span></p>
+    </div>
+    <div class="grid cm-grid">
+      <section>
+        <header class="sec-h"><h2>Gastos</h2><span class="hint" id="cmCount-out"></span></header>
+        <ol class="cm-list" id="cmOut"></ol>
+        <form class="cm-add" data-type="out" autocomplete="off" novalidate>
+          <input class="line-input" placeholder="Nueva categoría de gasto" aria-label="Nueva categoría de gasto">
+          <button type="submit" class="ghost">Agregar</button>
+          <span class="err" aria-live="polite"></span>
+        </form>
+      </section>
+      <section>
+        <header class="sec-h"><h2>Ingresos</h2><span class="hint" id="cmCount-in"></span></header>
+        <ol class="cm-list" id="cmIn"></ol>
+        <form class="cm-add" data-type="in" autocomplete="off" novalidate>
+          <input class="line-input" placeholder="Nueva categoría de ingreso" aria-label="Nueva categoría de ingreso">
+          <button type="submit" class="ghost">Agregar</button>
+          <span class="err" aria-live="polite"></span>
+        </form>
+      </section>
+    </div>
+  </section>
 </main>
 
 <button type="button" class="fab" id="fab" aria-label="Nuevo movimiento (N)">
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
 </button>
 
+<!-- ============ Formulario (movimiento o meta) ============ -->
 <div class="sheet-wrap" id="sheetWrap" hidden>
   <div class="scrim" id="scrim"></div>
   <form class="sheet" id="sheet" autocomplete="off" novalidate role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
@@ -130,35 +272,66 @@
       <button type="button" class="ghost" id="sheetClose">Cerrar</button>
     </header>
 
-    <div class="seg" id="seg" role="radiogroup" aria-label="Tipo">
-      <span class="seg-thumb" id="segThumb"></span>
-      <button type="button" role="radio" data-type="out" aria-checked="true">Gasto</button>
-      <button type="button" role="radio" data-type="in" aria-checked="false">Ingreso</button>
+    <!-- movimiento -->
+    <div class="sheet-body" data-mode="move">
+      <div class="seg" id="seg" role="radiogroup" aria-label="Tipo">
+        <span class="seg-thumb" id="segThumb"></span>
+        <button type="button" role="radio" data-type="out" aria-checked="true">Gasto</button>
+        <button type="button" role="radio" data-type="in" aria-checked="false">Ingreso</button>
+      </div>
+
+      <label class="field amount">
+        <span class="lbl"><span class="reveal"><span class="reveal-i">Monto</span></span></span>
+        <span class="amount-row">
+          <span class="cur">$</span>
+          <input id="fAmount" inputmode="decimal" placeholder="0" aria-describedby="fErr">
+        </span>
+        <span class="err" id="fErr" aria-live="polite"></span>
+      </label>
+
+      <fieldset class="field">
+        <legend class="lbl"><span class="reveal"><span class="reveal-i">Categoría</span></span></legend>
+        <div class="cat-chips" id="fCats"></div>
+      </fieldset>
+
+      <div class="row2">
+        <label class="field">
+          <span class="lbl"><span class="reveal"><span class="reveal-i">Fecha</span></span></span>
+          <input class="line-input" type="date" id="fDate">
+        </label>
+        <label class="field">
+          <span class="lbl"><span class="reveal"><span class="reveal-i">Nota</span></span></span>
+          <input class="line-input" id="fNote" placeholder="Opcional" maxlength="80">
+        </label>
+      </div>
     </div>
 
-    <label class="field amount">
-      <span class="lbl"><span class="reveal"><span class="reveal-i">Monto</span></span></span>
-      <span class="amount-row">
-        <span class="cur">$</span>
-        <input id="fAmount" inputmode="decimal" placeholder="0" aria-describedby="fErr">
-      </span>
-      <span class="err" id="fErr" aria-live="polite"></span>
-    </label>
-
-    <fieldset class="field">
-      <legend class="lbl"><span class="reveal"><span class="reveal-i">Categoría</span></span></legend>
-      <div class="cat-chips" id="fCats"></div>
-    </fieldset>
-
-    <div class="row2">
+    <!-- meta -->
+    <div class="sheet-body" data-mode="goal" hidden>
       <label class="field">
-        <span class="lbl"><span class="reveal"><span class="reveal-i">Fecha</span></span></span>
-        <input class="line-input" type="date" id="fDate">
+        <span class="lbl"><span class="reveal"><span class="reveal-i">Nombre</span></span></span>
+        <input class="line-input name-input" id="gName" placeholder="Viaje, fondo de emergencia…" maxlength="40">
       </label>
-      <label class="field">
-        <span class="lbl"><span class="reveal"><span class="reveal-i">Nota</span></span></span>
-        <input class="line-input" id="fNote" placeholder="Opcional" maxlength="80">
+
+      <label class="field amount">
+        <span class="lbl"><span class="reveal"><span class="reveal-i">Cuánto querés juntar</span></span></span>
+        <span class="amount-row">
+          <span class="cur">$</span>
+          <input id="gTargetIn" inputmode="decimal" placeholder="0" aria-describedby="gErr">
+        </span>
+        <span class="err" id="gErr" aria-live="polite"></span>
       </label>
+
+      <div class="row2">
+        <label class="field">
+          <span class="lbl"><span class="reveal"><span class="reveal-i" id="gSavedLbl">Ya tengo (opcional)</span></span></span>
+          <input class="line-input" id="gSavedIn" inputmode="decimal" placeholder="$ 0">
+        </label>
+        <label class="field">
+          <span class="lbl"><span class="reveal"><span class="reveal-i">Para cuándo (opcional)</span></span></span>
+          <input class="line-input" type="month" id="gDate">
+        </label>
+      </div>
     </div>
 
     <footer class="sheet-f">
@@ -178,6 +351,10 @@
 <script src="js/chart.js"></script>
 <script src="js/categories.js"></script>
 <script src="js/movements.js"></script>
+<script src="js/goals.js"></script>
+<script src="js/home.js"></script>
+<script src="js/cat-manage.js"></script>
+<script src="js/nav.js"></script>
 <script src="js/sheet.js"></script>
 <script src="js/menu.js"></script>
 <script src="js/pwa.js"></script>

@@ -17,19 +17,25 @@ Abrir en la compu: doble clic en `index.html` (así anda todo menos el modo sin 
 | `css/tokens.css` | Colores y tipografía |
 | `css/base.css` | Reset, máscaras de revelado, botones |
 | `css/header.css` | Logo, selector de mes, menú |
+| `css/nav.css` | Encabezado fijo, links, hamburguesa y menú a pantalla completa |
+| `css/views.css` | Inicio, Metas y Categorías |
 | `css/hero.css` | Balance del mes y gráfico |
 | `css/lists.css` | Categorías y movimientos |
 | `css/sheet.css` | El punto, el formulario y el aviso |
 | `css/responsive.css` | Tablet y celular |
 | `css/app.css` | Ajustes de app instalada (barra de estado, sin rebote, sin resaltado al tocar) |
-| `js/util.js` | Formato de plata y fechas, constantes, categorías (`CATS`) |
+| `js/util.js` | Formato de plata y fechas, constantes, categorías iniciales (`DEFAULT_CATS`) |
 | `js/motion.js` | Resortes y animaciones |
 | `js/store.js` | Datos: cargar, guardar, consultas, ejemplo |
 | `js/toast.js` | Aviso inferior con botón |
 | `js/chart.js` | Gráfico del balance |
 | `js/categories.js` | "En qué se va" y topes |
 | `js/movements.js` | Lista, filtros, búsqueda, borrar |
-| `js/sheet.js` | Formulario que sale del punto |
+| `js/goals.js` | Sección Metas |
+| `js/home.js` | Sección Inicio |
+| `js/cat-manage.js` | Sección Categorías |
+| `js/nav.js` | Secciones, punto del encabezado y menú de hamburguesa |
+| `js/sheet.js` | Formulario que sale del punto (movimiento o meta) |
 | `js/menu.js` | Instalar, exportar, importar, borrar todo |
 | `js/pwa.js` | Registra el service worker, pide almacenamiento persistente, botón "Instalar" |
 | `js/main.js` | Arranque, meses, teclado |
@@ -48,15 +54,16 @@ Abrir en la compu: doble clic en `index.html` (así anda todo menos el modo sin 
 
 ## Qué hace
 
-- **Balance del mes**: número grande con ingresos, gastos, % de ahorro y comparación de gastos con el mes anterior.
-- **Gráfico**: balance acumulado día a día. Pasando el mouse se ve el valor de cada día.
-- **En qué se va**: gastos por categoría. Tocando una se le pone un **tope mensual** (muestra cuánto queda o por cuánto me pasé).
-- **Movimientos**: agrupados por día, con filtros (Todos / Ingresos / Gastos) y búsqueda. Tocar uno lo edita; la ✕ lo borra (con "Deshacer").
-- **Nuevo movimiento**: el punto azul abajo a la derecha, o la tecla `N`.
-- **Cambiar de mes**: flechas del encabezado o teclas ← / →.
+Cuatro secciones. En la compu van en el encabezado (el punto azul marca dónde estás); en el celular, en el **menú de hamburguesa**.
+
+- **Inicio**: saludo y fecha, lo que te queda este mes, ingresos, gastos y plata en metas. Abajo: tus metas, los topes del mes (del más cerca de pasarse al más tranquilo) y los últimos movimientos.
+- **Movimientos**: balance del mes elegido (flechas o teclas ← / →), gráfico del balance acumulado, "En qué se va" con topes, y la lista con filtros y búsqueda. Tocar uno lo edita; la ✕ lo borra (con "Deshacer").
+- **Metas**: nombre, cuánto querés juntar, cuánto tenés y para cuándo. Te dice el % y cuánto juntar por mes para llegar. Botones **Sumar** y **Sacar** en cada meta. Cuando se cumple, el punto aparece al final de la barra.
+- **Categorías**: crear, renombrar, ponerle tope o borrar categorías de gastos e ingresos. Al renombrar se actualizan todos los movimientos; al borrar, sus movimientos pasan a "Otros" (que no se puede borrar).
+- **El punto azul** (abajo a la derecha, o la tecla `N`): nuevo movimiento. En Metas: nueva meta.
 - **Opciones**: instalar en el celular, exportar copia `.json`, importar copia, ver datos de ejemplo, borrar todo.
 
-> Los datos viven solo en este navegador. Si se limpian los datos del navegador, se pierden: **exportar una copia de vez en cuando**.
+> Los datos viven solo en este dispositivo. **Exportar una copia de vez en cuando.**
 
 ## Estilo
 
@@ -93,6 +100,11 @@ Se guardan en localStorage con la clave `misfinanzas.v1`, con este formato (el m
       "category": "Supermercado", "note": "Súper", "date": "2026-11-05" }
   ],
   "budgets": { "Supermercado": 200000 },
+  "cats": { "out": ["Supermercado", "…", "Otros"], "in": ["Sueldo", "…", "Otros"] },
+  "goals": [
+    { "id": "…", "name": "Viaje", "target": 900000, "saved": 310000, "deadline": "2027-04",
+      "history": [{ "date": "2026-11-05", "amount": 310000 }] }
+  ],
   "sample": false
 }
 ```
@@ -101,7 +113,7 @@ Se guardan en localStorage con la clave `misfinanzas.v1`, con este formato (el m
 - Moneda: pesos argentinos, formato `es-AR` (`$ 12.500`).
 - Categorías de gasto: Supermercado, Comida, Transporte, Vivienda, Servicios, Salud, Ocio, Ropa, Educación, Otros.
 - Categorías de ingreso: Sueldo, Freelance, Ventas, Regalos, Otros.
-- Para cambiarlas: constante `CATS` en `js/util.js`.
+- Se cambian desde la sección **Categorías** (se guardan en `cats`). `DEFAULT_CATS` en `js/util.js` son las iniciales.
 
 ## Próximos pasos
 

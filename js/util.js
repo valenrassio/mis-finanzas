@@ -7,7 +7,7 @@
 
   MF.STORAGE_KEY = 'misfinanzas.v1';
 
-  MF.CATS = {
+  MF.DEFAULT_CATS = {
     out: ['Supermercado', 'Comida', 'Transporte', 'Vivienda', 'Servicios', 'Salud', 'Ocio', 'Ropa', 'Educación', 'Otros'],
     in: ['Sueldo', 'Freelance', 'Ventas', 'Regalos', 'Otros'],
   };

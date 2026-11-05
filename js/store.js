@@ -2,9 +2,32 @@
    Hoy guarda en localStorage. Para pasar a un back, solo cambian load() y save(). */
 (function (MF) {
   'use strict';
-  const { STORAGE_KEY, monthPrefix, now, pad, uid, lerp } = MF;
+  const { STORAGE_KEY, DEFAULT_CATS, monthPrefix, now, pad, uid, lerp, iso } = MF;
 
-  const empty = () => ({ tx: [], budgets: {}, sample: false });
+  const OTHER = 'Otros';
+  const defaultCats = () => ({ out: [...DEFAULT_CATS.out], in: [...DEFAULT_CATS.in] });
+  const empty = () => ({ tx: [], budgets: {}, cats: defaultCats(), goals: [], sample: false });
+  const same = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+  /* Completa lo que falte en datos viejos: categorías propias y metas.
+     Toda categoría usada en un movimiento queda en la lista, y "Otros" siempre va última. */
+  function normalize(d) {
+    const db = {
+      tx: d.tx,
+      budgets: d.budgets && typeof d.budgets === 'object' ? d.budgets : {},
+      cats: d.cats && Array.isArray(d.cats.out) && Array.isArray(d.cats.in)
+        ? { out: d.cats.out.map(String), in: d.cats.in.map(String) } : defaultCats(),
+      goals: Array.isArray(d.goals) ? d.goals : [],
+      sample: !!d.sample,
+    };
+    for (const type of ['out', 'in']) {
+      const list = db.cats[type].filter((c, i, a) => c && c !== OTHER && a.findIndex(x => same(x, c)) === i);
+      for (const t of db.tx) if (t.type === type && t.category !== OTHER && !list.includes(t.category)) list.push(t.category);
+      list.push(OTHER);
+      db.cats[type] = list;
+    }
+    return db;
+  }
 
   // null = nunca se guardó nada en este navegador (primera visita)
   function load() {
@@ -12,7 +35,7 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw === null) return null;
       const d = JSON.parse(raw);
-      if (d && Array.isArray(d.tx)) return { tx: d.tx, budgets: d.budgets || {}, sample: !!d.sample };
+      if (d && Array.isArray(d.tx)) return normalize(d);
     } catch (e) { /* almacenamiento bloqueado o dañado */ }
     return empty();
   }
@@ -20,6 +43,8 @@
   const store = {
     db: empty(),
     view: { y: now.getFullYear(), m: now.getMonth(), filter: 'all', q: '' },
+    OTHER,
+    empty,
 
     init() {
       const d = load();
@@ -40,24 +65,87 @@
     inMonth(y, m) { const p = monthPrefix(y, m); return store.db.tx.filter(t => t.date.startsWith(p)); },
     sum: list => list.reduce((a, t) => { a[t.type] += t.amount; return a; }, { in: 0, out: 0 }),
 
+    /* ---- movimientos ---- */
     add(data) { store.db.tx.push({ id: uid(), created: Date.now(), ...data }); },
     remove(id) { store.db.tx = store.db.tx.filter(t => t.id !== id); },
     find(id) { return store.db.tx.find(t => t.id === id); },
     setBudget(cat, value) { if (value > 0) store.db.budgets[cat] = value; else delete store.db.budgets[cat]; },
+
+    /* ---- categorías ---- */
+    cats: type => store.db.cats[type],
+    hasCat: (type, name, except) => store.db.cats[type].some(c => same(c, name) && c !== except),
+
+    addCat(type, name) {
+      const list = store.db.cats[type];
+      list.splice(Math.max(0, list.indexOf(OTHER)), 0, name);
+    },
+
+    /* Renombra en la lista, en todos los movimientos de ese tipo y en el tope. */
+    renameCat(type, from, to) {
+      if (from === to || from === OTHER) return;
+      const list = store.db.cats[type];
+      list[list.indexOf(from)] = to;
+      for (const t of store.db.tx) if (t.type === type && t.category === from) t.category = to;
+      if (type === 'out' && from in store.db.budgets) { store.db.budgets[to] = store.db.budgets[from]; delete store.db.budgets[from]; }
+    },
+
+    /* Borra la categoría: sus movimientos pasan a "Otros". Devuelve cuántos se movieron. */
+    removeCat(type, name) {
+      if (name === OTHER) return 0;
+      store.db.cats[type] = store.db.cats[type].filter(c => c !== name);
+      let moved = 0;
+      for (const t of store.db.tx) if (t.type === type && t.category === name) { t.category = OTHER; moved++; }
+      if (type === 'out') delete store.db.budgets[name];
+      return moved;
+    },
+
+    /* ---- metas ---- */
+    findGoal: id => store.db.goals.find(g => g.id === id),
+    addGoal({ name, target, saved = 0, deadline = '' }) {
+      const g = { id: uid(), created: Date.now(), name, target, saved: Math.max(0, saved), deadline, history: [] };
+      if (g.saved > 0) g.history.push({ date: iso(new Date()), amount: g.saved });
+      store.db.goals.push(g);
+      return g;
+    },
+    updateGoal(id, data) {
+      const g = store.findGoal(id);
+      if (!g) return;
+      if ('saved' in data && data.saved !== g.saved) g.history.push({ date: iso(new Date()), amount: data.saved - g.saved });
+      Object.assign(g, data);
+    },
+    removeGoal(id) { store.db.goals = store.db.goals.filter(g => g.id !== id); },
+    /* Suma (o resta, si amount < 0) plata a una meta. Nunca baja de cero. Devuelve lo que realmente se movió. */
+    contribute(id, amount) {
+      const g = store.findGoal(id);
+      if (!g) return 0;
+      const real = Math.max(-g.saved, amount);
+      g.saved = Math.round((g.saved + real) * 100) / 100;
+      if (real) g.history.push({ date: iso(new Date()), amount: real });
+      return real;
+    },
 
     /* Valida y normaliza una copia importada. Devuelve null si no sirve. */
     parseBackup(d) {
       const ok = d && Array.isArray(d.tx) && d.tx.every(t =>
         (t.type === 'in' || t.type === 'out') && t.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(t.date));
       if (!ok) return null;
-      return {
+      const goals = (Array.isArray(d.goals) ? d.goals : [])
+        .filter(g => g && g.name && g.target > 0)
+        .map(g => ({
+          id: g.id || uid(), created: g.created || Date.now(), name: String(g.name).slice(0, 40), target: +g.target,
+          saved: Math.max(0, +g.saved || 0), deadline: /^\d{4}-\d{2}$/.test(g.deadline) ? g.deadline : '',
+          history: Array.isArray(g.history) ? g.history : [],
+        }));
+      return normalize({
         tx: d.tx.map(t => ({
           id: t.id || uid(), created: t.created || Date.now(), type: t.type, amount: +t.amount,
-          category: String(t.category || 'Otros'), note: String(t.note || ''), date: t.date,
+          category: String(t.category || OTHER), note: String(t.note || ''), date: t.date,
         })),
-        budgets: d.budgets && typeof d.budgets === 'object' ? d.budgets : {},
+        budgets: d.budgets,
+        cats: d.cats,
+        goals,
         sample: !!d.sample,
-      };
+      });
     },
   };
 
@@ -88,7 +176,16 @@
         add(d, 'out', p[0], lerp(p[1], p[2], rnd()), p[3]);
       }
     }
-    return { tx, budgets: { Supermercado: 200000, Comida: 90000, Ocio: 70000, Transporte: 45000 }, sample: true };
+    const monthsAhead = k => { const x = store.shift(now.getFullYear(), now.getMonth(), k); return `${x.y}-${pad(x.m + 1)}`; };
+    const goal = (name, target, saved, deadline, k) => ({
+      id: uid(), created: Date.now() - k, name, target, saved, deadline, history: [{ date: iso(now), amount: saved }],
+    });
+    const goals = [
+      goal('Fondo de emergencia', 1500000, 620000, monthsAhead(8), 3),
+      goal('Viaje a Bariloche', 900000, 310000, monthsAhead(5), 2),
+      goal('Notebook nueva', 1200000, 1200000, '', 1),
+    ];
+    return normalize({ tx, budgets: { Supermercado: 200000, Comida: 90000, Ocio: 70000, Transporte: 45000 }, goals, sample: true });
   }
 
   MF.store = store;
