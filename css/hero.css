@@ -1,0 +1,34 @@
+/* Balance del mes y gráfico. */
+/* hero */
+.hero { padding: 80px 0 32px; }
+.eyebrow { color: var(--ink-2); font-weight: 500; font-size: 16px; }
+.key { color: var(--accent); }
+.balance {
+  font-size: clamp(56px, 11.5vw, 152px); font-weight: 500; letter-spacing: -.05em; line-height: .95;
+  margin-top: 14px; white-space: nowrap;
+}
+.stats { display: flex; gap: 64px; margin-top: 44px; }
+.stats dt { color: var(--ink-3); font-size: 13px; }
+.stats dd { font-size: 24px; font-weight: 500; letter-spacing: -.02em; margin-top: 2px; }
+.stats small { display: block; color: var(--ink-3); font-size: 13px; margin-top: 2px; min-height: 1.45em; }
+.notice { margin-top: 28px; color: var(--ink-2); font-size: 14px; }
+.notice button { text-decoration: underline; text-underline-offset: 3px; color: var(--ink); }
+
+/* chart */
+.chart { margin-top: 24px; }
+.plot { position: relative; height: 240px; touch-action: pan-y; }
+.plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.line { fill: none; stroke: var(--ink); stroke-width: 1.75; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+.zero { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 5; vector-effect: non-scaling-stroke; }
+.chart-dot { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; left: 0; top: 50%; }
+.hover-dot { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: var(--bg); border: 1.75px solid var(--ink); }
+.rule { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+.tip {
+  position: absolute; transform: translate(-50%, calc(-100% - 14px));
+  background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 500;
+  padding: 6px 10px; border-radius: 8px; white-space: nowrap; pointer-events: none;
+}
+.axis { position: relative; height: 18px; margin-top: 14px; color: var(--ink-3); font-size: 12px; }
+.axis span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.axis span:first-child { transform: none; }
+.axis span:last-child { transform: translateX(-100%); }

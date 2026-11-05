@@ -1,0 +1,28 @@
+/* Tablet y celular. */
+@media (max-width: 860px) {
+  .grid { grid-template-columns: 1fr; gap: 64px; }
+}
+@media (max-width: 640px) {
+  .wrap {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .top { height: 64px; }
+  .brand-name { display: none; }
+  .month-label { min-width: 128px; }
+  .hero { padding: 40px 0 20px; }
+  .stats { gap: 28px 32px; flex-wrap: wrap; margin-top: 32px; }
+  .stats dd { font-size: 20px; }
+  .plot { height: 170px; }
+  .grid { margin-top: 40px; padding: 40px 0 140px; }
+  .search { width: 100%; }
+  .tools { width: 100%; }
+  .fab {
+    right: calc(16px + env(safe-area-inset-right, 0px));
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  .sheet { padding: 20px 16px 24px; border-left: 0; gap: 26px; }
+  .amount input { font-size: 44px; }
+  .row2 { grid-template-columns: 1fr; }
+  .toast { bottom: 88px; }
+}

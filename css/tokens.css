@@ -1,0 +1,40 @@
+/* Colores y tipografía. Un solo acento: el azul del punto. */
+:root {
+  --bg: #F4F3EF;
+  --ink: #121211;
+  --ink-2: #56554F;
+  --ink-3: #8C8A83;
+  --line: #DCDAD3;
+  --line-2: #E9E7E1;
+  --accent: #2347FF;
+  --on-accent: #FFFFFF;
+  --scrim: rgba(18, 18, 17, .16);
+  --font: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F0F0E;
+    --ink: #F1F0EB;
+    --ink-2: #A9A7A0;
+    --ink-3: #6F6E68;
+    --line: #2B2A27;
+    --line-2: #1D1C1A;
+    --accent: #5E7BFF;
+    --on-accent: #0F0F0E;
+    --scrim: rgba(0, 0, 0, .5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F0F0E;
+  --ink: #F1F0EB;
+  --ink-2: #A9A7A0;
+  --ink-3: #6F6E68;
+  --line: #2B2A27;
+  --line-2: #1D1C1A;
+  --accent: #5E7BFF;
+  --on-accent: #0F0F0E;
+  --scrim: rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}

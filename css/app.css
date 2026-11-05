@@ -1,0 +1,9 @@
+/* Ajustes para que se sienta como una app instalada en el celular. */
+html, body { overscroll-behavior-y: none; }
+body { -webkit-tap-highlight-color: transparent; }
+button, .chip, .cat, .fab { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+
+/* Abierta desde el ícono: el encabezado deja lugar a la barra de estado del celular. */
+@media (display-mode: standalone) {
+  .top { box-sizing: content-box; padding-top: env(safe-area-inset-top, 0px); }
+}

@@ -1,0 +1,8 @@
+/* Inter Tight guardada en la carpeta (fuente variable, un archivo para 400, 500 y 600), así se ve igual sin internet. */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url(../fonts/inter-tight-latin.woff2) format('woff2');
+}

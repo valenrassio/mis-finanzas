@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mis finanzas</title>
+<meta name="description" content="Ingresos, gastos y topes por categoría. Funciona sin conexión.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%232347FF'/%3E%3C/svg%3E">
+
+<!-- App instalable -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F4F3EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F0F0E" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Finanzas">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/header.css">
+<link rel="stylesheet" href="css/hero.css">
+<link rel="stylesheet" href="css/lists.css">
+<link rel="stylesheet" href="css/sheet.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="top wrap">
+  <a class="brand" href="./" aria-label="Mis finanzas, inicio">
+    <span class="dot" id="brandDot"></span><span class="brand-name">mis finanzas</span>
+  </a>
+  <nav class="month" aria-label="Cambiar mes">
+    <button type="button" id="prevM" aria-label="Mes anterior">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>
+    </button>
+    <span class="reveal month-label"><span class="reveal-i" id="monthLabel"></span></span>
+    <button type="button" id="nextM" aria-label="Mes siguiente">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg>
+    </button>
+  </nav>
+  <div class="menu-wrap">
+    <button type="button" class="ghost" id="menuBtn" aria-haspopup="true" aria-expanded="false">Opciones</button>
+    <div class="menu" id="menu" hidden>
+      <button type="button" data-act="install" id="menuInstall" hidden>Instalar en el celular</button>
+      <button type="button" data-act="export">Exportar copia (.json)</button>
+      <button type="button" data-act="import">Importar copia</button>
+      <button type="button" data-act="sample" id="menuSample">Ver con datos de ejemplo</button>
+      <button type="button" data-act="wipe" id="menuWipe">Borrar todo</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+  <section class="hero" aria-live="polite">
+    <p class="eyebrow"><span class="reveal"><span class="reveal-i">Balance de <span class="key" id="heroMonth"></span></span></span></p>
+    <h1 class="balance"><span class="reveal"><span class="reveal-i" id="balance">$ 0</span></span></h1>
+    <dl class="stats">
+      <div>
+        <dt><span class="reveal"><span class="reveal-i">Ingresos</span></span></dt>
+        <dd><span class="reveal"><span class="reveal-i" id="sIn">$ 0</span></span></dd>
+      </div>
+      <div>
+        <dt><span class="reveal"><span class="reveal-i">Gastos</span></span></dt>
+        <dd><span class="reveal"><span class="reveal-i" id="sOut">$ 0</span></span></dd>
+        <small id="sOutCmp"></small>
+      </div>
+      <div>
+        <dt><span class="reveal"><span class="reveal-i">Ahorro</span></span></dt>
+        <dd><span class="reveal"><span class="reveal-i" id="sSave">—</span></span></dd>
+      </div>
+    </dl>
+    <p class="notice" id="notice" hidden>Estás viendo datos de ejemplo. <button type="button" data-act="wipe-sample">Borrarlos y empezar</button></p>
+  </section>
+
+  <section class="chart" id="chart" aria-label="Evolución del balance en el mes">
+    <div class="plot" id="plot">
+      <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+        <line class="zero" id="zero" x1="0" x2="1000" y1="50" y2="50"/>
+        <path class="line" id="line" d=""/>
+      </svg>
+      <span class="rule" id="rule" hidden></span>
+      <span class="hover-dot" id="hoverDot" hidden></span>
+      <span class="dot chart-dot" id="chartDot"></span>
+      <span class="tip" id="tip" hidden></span>
+    </div>
+    <div class="axis" id="axis"></div>
+  </section>
+
+  <div class="grid">
+    <section class="cats">
+      <header class="sec-h">
+        <h2>En qué se va</h2>
+        <span class="hint">Tocá una categoría para ponerle tope</span>
+      </header>
+      <ol id="catList" class="cat-list"></ol>
+    </section>
+
+    <section class="moves">
+      <header class="sec-h">
+        <h2>Movimientos</h2>
+        <div class="tools">
+          <div class="chipset" role="group" aria-label="Filtrar movimientos">
+            <button type="button" class="chip" data-filter="all" aria-pressed="true">Todos</button>
+            <button type="button" class="chip" data-filter="in" aria-pressed="false">Ingresos</button>
+            <button type="button" class="chip" data-filter="out" aria-pressed="false">Gastos</button>
+          </div>
+          <input class="search" id="search" type="search" placeholder="Buscar" aria-label="Buscar movimientos">
+        </div>
+      </header>
+      <div id="moveList"></div>
+    </section>
+  </div>
+</main>
+
+<button type="button" class="fab" id="fab" aria-label="Nuevo movimiento (N)">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<div class="sheet-wrap" id="sheetWrap" hidden>
+  <div class="scrim" id="scrim"></div>
+  <form class="sheet" id="sheet" autocomplete="off" novalidate role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="flood" id="flood"></div>
+    <header class="sheet-h">
+      <h2><span class="reveal"><span class="reveal-i" id="sheetTitle">Nuevo movimiento</span></span></h2>
+      <button type="button" class="ghost" id="sheetClose">Cerrar</button>
+    </header>
+
+    <div class="seg" id="seg" role="radiogroup" aria-label="Tipo">
+      <span class="seg-thumb" id="segThumb"></span>
+      <button type="button" role="radio" data-type="out" aria-checked="true">Gasto</button>
+      <button type="button" role="radio" data-type="in" aria-checked="false">Ingreso</button>
+    </div>
+
+    <label class="field amount">
+      <span class="lbl"><span class="reveal"><span class="reveal-i">Monto</span></span></span>
+      <span class="amount-row">
+        <span class="cur">$</span>
+        <input id="fAmount" inputmode="decimal" placeholder="0" aria-describedby="fErr">
+      </span>
+      <span class="err" id="fErr" aria-live="polite"></span>
+    </label>
+
+    <fieldset class="field">
+      <legend class="lbl"><span class="reveal"><span class="reveal-i">Categoría</span></span></legend>
+      <div class="cat-chips" id="fCats"></div>
+    </fieldset>
+
+    <div class="row2">
+      <label class="field">
+        <span class="lbl"><span class="reveal"><span class="reveal-i">Fecha</span></span></span>
+        <input class="line-input" type="date" id="fDate">
+      </label>
+      <label class="field">
+        <span class="lbl"><span class="reveal"><span class="reveal-i">Nota</span></span></span>
+        <input class="line-input" id="fNote" placeholder="Opcional" maxlength="80">
+      </label>
+    </div>
+
+    <footer class="sheet-f">
+      <button type="button" class="ghost" id="fDelete" hidden>Borrar</button>
+      <button type="submit" class="primary">Guardar</button>
+    </footer>
+  </form>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+
+<script src="js/util.js"></script>
+<script src="js/motion.js"></script>
+<script src="js/store.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/chart.js"></script>
+<script src="js/categories.js"></script>
+<script src="js/movements.js"></script>
+<script src="js/sheet.js"></script>
+<script src="js/menu.js"></script>
+<script src="js/pwa.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+/* Encabezado: logo, selector de mes, menú de opciones. */
+/* top bar */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 76px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 600; letter-spacing: -.01em; }
+.month { display: flex; align-items: center; gap: 4px; }
+.month button { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-2); }
+.month button:hover { background: var(--line-2); color: var(--ink); }
+.month svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.month-label { min-width: 150px; text-align: center; font-weight: 500; }
+.month-label .reveal-i { display: block; }
+
+.menu-wrap { position: relative; }
+.menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 25;
+  min-width: 232px; padding: 6px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 14px;
+}
+.menu button { display: block; width: 100%; text-align: left; padding: 10px 12px; border-radius: 8px; }
+.menu button:hover { background: var(--line-2); }
