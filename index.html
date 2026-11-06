@@ -112,8 +112,19 @@
     <div class="grid home-grid">
       <div>
         <section>
-          <header class="sec-h"><h2>Últimos 7 días</h2><span class="hint">Lo que gastaste cada día</span></header>
-          <div class="week" id="hWeek"></div>
+          <header class="sec-h">
+            <h2><span class="reveal wk-title"><span class="reveal-i" id="wkTitle">Últimos 7 días</span></span></h2>
+            <div class="wk-nav">
+              <button type="button" class="wk-arrow" id="wkPrev" aria-label="Semana anterior">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>
+              </button>
+              <button type="button" class="wk-arrow" id="wkNext" aria-label="Semana siguiente" disabled>
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg>
+              </button>
+            </div>
+          </header>
+          <div class="week" id="hWeek" role="group" aria-label="Gastos por día. Tocá un día para ver y corregir sus movimientos."></div>
+          <div class="day-panel" id="hDay" aria-live="polite"></div>
         </section>
         <section class="sec-next">
           <header class="sec-h"><h2>Cómo venís</h2><span class="hint">Comparado con tus meses anteriores</span></header>

@@ -32,7 +32,7 @@
 /* botón del aviso inferior (Deshacer, Recargar) */
 .toast button { background: var(--pop); color: var(--on-pop); }
 
-/* "hoy" en las barras de la semana */
+/* "hoy" en las barras de la semana (la barra negra es el día elegido) */
 .wk-col.today .wk-day { background: var(--pop); color: var(--on-pop); padding: 1px 7px; border-radius: 999px; margin-top: 7px; }
 
 /* botón "Cumplida" de cada meta */

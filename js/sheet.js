@@ -66,10 +66,10 @@
     return { cx, cy, R, r0: f.width / 2 };
   }
 
-  function fillMove(tx) {
+  function fillMove(tx, opts = {}) {
     $('#sheetTitle').textContent = tx ? 'Editar movimiento' : 'Nuevo movimiento';
     fAmount.value = tx ? String(tx.amount).replace('.', ',') : '';
-    fDate.value = tx ? tx.date : defaultDate();
+    fDate.value = tx ? tx.date : (opts.date || defaultDate());
     fNote.value = tx ? tx.note || '' : '';
     fErr.textContent = '';
     form.cat = tx ? tx.category : null;
@@ -85,7 +85,7 @@
     gErr.textContent = '';
   }
 
-  function openWith(mode, item) {
+  function openWith(mode, item, opts = {}) {
     if (isOpen) return;
     isOpen = true;
     MF.menu && MF.menu.close();
@@ -94,7 +94,7 @@
     form.editing = item || null;
     $$('.sheet-body', sheet).forEach(b => { b.hidden = b.dataset.mode !== mode; });
     $('#fDelete').hidden = !item;
-    if (mode === 'goal') fillGoal(item); else fillMove(item);
+    if (mode === 'goal') fillGoal(item); else fillMove(item, opts);
     wrap.hidden = false;
     sheet.scrollTop = 0;
     if (mode === 'move') { thumb.w = 0; setType(item ? item.type : 'out', false); }
@@ -200,7 +200,7 @@
   [gName, gTarget].forEach(i => i.addEventListener('input', () => { gErr.textContent = ''; }));
 
   MF.sheet = {
-    open: tx => openWith('move', tx),
+    open: (tx, opts) => openWith('move', tx, opts), // opts.date: fecha para un movimiento nuevo
     openGoal: g => openWith('goal', g),
     close,
     isOpen: () => isOpen,

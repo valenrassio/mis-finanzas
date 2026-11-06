@@ -8,7 +8,7 @@
 (function (MF) {
   'use strict';
   const { $, $$, MONTHS, WEEKDAYS, now, iso, esc, money, signed, lerp, monthPrefix, store } = MF;
-  const { animate, reveal, countTo, grow } = MF.motion;
+  const { animate, reveal, countTo, grow, swapText } = MF.motion;
 
   const weekBox = $('#hWeek'), tipsBox = $('#hTips'), goalsBox = $('#hGoals');
   const prevGoals = new Map();
@@ -73,26 +73,45 @@
     countTo($('#hAvg'), s.out / D, money);
   }
 
-  /* ---- barras de los últimos 7 días; el punto marca hoy ---- */
+  /* ---- barras de 7 días: se puede volver a semanas anteriores y tocar un día para ver sus movimientos ---- */
   const short = v => (v >= 1e6 ? `${(v / 1e6).toFixed(1).replace('.', ',').replace(',0', '')}M` : v >= 1000 ? `${Math.round(v / 1000)}k` : v > 0 ? `${Math.round(v)}` : '');
+  const TODAY = iso(now);
+  const week = { offset: 0, sel: TODAY }; // offset: cuántas semanas para atrás; sel: día elegido
+  const dayPanel = $('#hDay');
 
-  function renderWeek(mode) {
+  function windowDays() {
     const days = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(Y, M, D - i);
+      const d = new Date(Y, M, D - week.offset * 7 - i);
       const key = iso(d);
-      const out = store.db.tx.reduce((a, t) => a + (t.type === 'out' && t.date === key ? t.amount : 0), 0);
-      days.push({ d, out, today: i === 0 });
+      let out = 0;
+      for (const t of store.db.tx) if (t.type === 'out' && t.date === key) out += t.amount;
+      days.push({ d, key, out, today: key === TODAY });
     }
+    return days;
+  }
+
+  function weekTitle(days) {
+    if (!week.offset) return 'Últimos 7 días';
+    const a = days[0].d, z = days[6].d;
+    return a.getMonth() === z.getMonth()
+      ? `${a.getDate()} al ${z.getDate()} de ${MONTHS[z.getMonth()]}`
+      : `${a.getDate()} de ${MONTHS[a.getMonth()].slice(0, 3)} al ${z.getDate()} de ${MONTHS[z.getMonth()].slice(0, 3)}`;
+  }
+
+  function renderWeek(mode, dir = 1) {
+    const days = windowDays();
+    if (!days.some(x => x.key === week.sel)) week.sel = days[6].key;
     const max = Math.max(1, ...days.map(x => x.out));
     weekBox.innerHTML = days.map(x => {
       const label = `${MF.cap(WEEKDAYS[x.d.getDay()])} ${x.d.getDate()}: ${money(x.out)}`;
-      return `<div class="wk-col${x.today ? ' today' : ''}" role="img" aria-label="${label}" title="${label}">
+      return `<button type="button" class="wk-col${x.today ? ' today' : ''}${x.key === week.sel ? ' sel' : ''}"
+          data-day="${x.key}" aria-pressed="${x.key === week.sel}" aria-label="${label}" title="${label}">
         <span class="wk-val">${short(x.out)}</span>
         <span class="wk-bar"><span class="wk-fill"></span></span>
         <span class="wk-day">${WEEKDAYS[x.d.getDay()].charAt(0).toUpperCase()}</span>
-        ${x.today ? '<span class="dot wk-dot"></span>' : ''}
-      </div>`;
+        ${x.today ? '<span class="dot wk-dot"></span>' : '<span class="wk-dot-space"></span>'}
+      </button>`;
     }).join('');
 
     const to = days.map(x => x.out / max);
@@ -101,13 +120,82 @@
     $$('.wk-fill', weekBox).forEach((f, i) => {
       f.style.transform = `scaleY(${from[i]})`;
       animate(f, {
-        delay: mode === 'data' ? 0 : 0.3 + i * 0.05, w: 13,
+        delay: mode === 'data' ? 0 : mode === 'week' ? i * 0.025 : 0.3 + i * 0.05, w: 13,
         update: p => { f.style.transform = `scaleY(${Math.max(0, lerp(from[i], to[i], p))})`; },
       });
     });
     const dot = $('.wk-dot', weekBox);
-    if (dot && mode !== 'data') grow(dot, { delay: 0.75 });
+    if (dot && mode !== 'data') grow(dot, { delay: mode === 'week' ? 0.2 : 0.75 });
+
+    // título y flechas
+    const title = weekTitle(days);
+    if (mode === 'week') swapText($('#wkTitle'), title, dir); else $('#wkTitle').textContent = title;
+    const earliest = store.db.tx.reduce((m, t) => (t.date < m ? t.date : m), TODAY);
+    $('#wkPrev').disabled = earliest >= days[0].key;
+    $('#wkNext').disabled = week.offset === 0;
+
+    renderDay(mode !== 'data');
   }
+
+  /* Movimientos del día elegido, para corregir o borrar, y botón para agregar en esa fecha. */
+  function renderDay(animated) {
+    const list = store.db.tx
+      .filter(t => t.date === week.sel)
+      .sort((a, b) => (b.created || 0) - (a.created || 0));
+    const net = list.reduce((a, t) => a + (t.type === 'in' ? t.amount : -t.amount), 0);
+    dayPanel.innerHTML = `
+      <div class="mask"><div class="day-h dp-h"><span>${MF.movements.dayLabel(week.sel)}</span><span>${list.length ? MF.plusMinus(net) : ''}</span></div></div>
+      ${list.length ? list.map(MF.movements.rowHtml).join('') : '<div class="mask"><p class="dp-empty">No cargaste nada este día.</p></div>'}
+      <div class="mask"><button type="button" class="dp-add" data-day-add>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>Agregar a este día</button></div>`;
+    if (animated) reveal($$('.mask > *', dayPanel), { delay: 0.05, stagger: 0.03 });
+  }
+
+  function selectDay(key) {
+    if (key === week.sel) return;
+    week.sel = key;
+    $$('.wk-col', weekBox).forEach(c => {
+      const on = c.dataset.day === key;
+      c.classList.toggle('sel', on);
+      c.setAttribute('aria-pressed', String(on));
+    });
+    renderDay(true);
+  }
+
+  function shiftWeek(delta) {
+    const next = week.offset - delta; // delta -1 = semana anterior
+    if (next < 0) return;
+    if (delta < 0 && $('#wkPrev').disabled) return;
+    week.offset = next;
+    week.sel = next === 0 ? TODAY : iso(new Date(Y, M, D - next * 7));
+    renderWeek('week', delta < 0 ? -1 : 1);
+  }
+
+  $('#wkPrev').addEventListener('click', () => shiftWeek(-1));
+  $('#wkNext').addEventListener('click', () => shiftWeek(1));
+
+  // Deslizar el dedo sobre las barras: hacia la derecha va a la semana anterior.
+  let swipe = null, swiped = false;
+  weekBox.addEventListener('pointerdown', e => { swipe = { x: e.clientX, y: e.clientY }; swiped = false; });
+  weekBox.addEventListener('pointerup', e => {
+    if (!swipe) return;
+    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+    swipe = null;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) { swiped = true; shiftWeek(dx > 0 ? -1 : 1); }
+  });
+  weekBox.addEventListener('click', e => {
+    if (swiped) { swiped = false; return; }
+    const col = e.target.closest('[data-day]');
+    if (col) selectDay(col.dataset.day);
+  });
+
+  dayPanel.addEventListener('click', e => {
+    const edit = e.target.closest('[data-edit]');
+    if (edit) { const t = store.find(edit.dataset.edit); if (t) MF.sheet.open(t); return; }
+    const del = e.target.closest('[data-del]');
+    if (del) { MF.movements.remove(del.dataset.del); return; }
+    if (e.target.closest('[data-day-add]')) MF.sheet.open(null, { date: week.sel });
+  });
 
   /* ---- "Cómo venís": frases cortas con los números en negrita ---- */
   function tips(s) {

@@ -72,7 +72,8 @@
   display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;
   height: 180px; padding-top: 8px;
 }
-.wk-col { position: relative; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.wk-col { position: relative; display: flex; flex-direction: column; align-items: center; min-width: 0; padding: 0; border-radius: 10px; }
+.wk-col:hover .wk-fill { background: var(--ink-3); }
 .wk-val { font-size: 11px; color: var(--ink-3); height: 16px; white-space: nowrap; }
 .wk-bar { position: relative; flex: 1; width: 100%; max-width: 36px; margin-top: 6px; border-bottom: 1px solid var(--line); }
 .wk-fill {
@@ -80,11 +81,11 @@
   background: var(--line); border-radius: 4px 4px 0 0;
   transform-origin: center bottom; transform: scaleY(0);
 }
-.wk-col.today .wk-fill { background: var(--ink); }
-.wk-col.today .wk-val { color: var(--ink); font-weight: 500; }
+.wk-col.sel .wk-fill, .wk-col.sel:hover .wk-fill { background: var(--ink); }
+.wk-col.sel .wk-val { color: var(--ink); font-weight: 500; }
 .wk-day { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
 .wk-col.today .wk-day { color: var(--ink); font-weight: 600; }
-.wk-dot { width: 6px; height: 6px; margin-top: 6px; }
+.wk-dot, .wk-dot-space { width: 6px; height: 6px; margin-top: 6px; flex: none; }
 
 .tips { list-style: none; padding: 0; }
 .tip-row {
@@ -94,3 +95,22 @@
 .tip-k { font-size: 12px; color: var(--ink-3); font-weight: 500; }
 .tip-row p { color: var(--ink-2); line-height: 1.5; }
 .tips .empty { list-style: none; }
+
+/* semana navegable y panel del día elegido */
+.week { touch-action: pan-y; }
+.wk-title .reveal-i { display: block; }
+.wk-nav { display: flex; gap: 2px; margin-right: -8px; }
+.wk-arrow { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-2); }
+.wk-arrow:hover:not(:disabled) { background: var(--line-2); color: var(--ink); }
+.wk-arrow:disabled { opacity: .3; cursor: default; }
+.wk-arrow svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.day-panel { margin-top: 18px; border-top: 1px solid var(--line); }
+.dp-h { color: var(--ink); font-weight: 500; font-size: 13px; padding-top: 16px; }
+.dp-empty { color: var(--ink-3); padding: 12px 0; }
+.dp-add {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 12px; padding: 8px 14px 8px 10px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--ink-2); font-size: 13px; font-weight: 500;
+}
+.dp-add:hover { color: var(--ink); border-color: var(--ink-3); }
+.dp-add svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
